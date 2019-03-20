@@ -86,9 +86,7 @@ void mylib_rwlock_rlock(mylib_rwlock_t *l) {
 }
 
 void mylib_rwlock_wlock(mylib_rwlock_t *l) {
-	/* if there are readers or writers, increment pending writers
-	count and wait. On being woken, decrement pending writers
-	count and increment writer count */
+
 	pthread_mutex_lock(&(l -> read_write_lock));
 	while ((l -> writer > 0) || (l -> readers > 0)) {
 		l -> pending_writers ++;
