@@ -185,8 +185,6 @@ void main(int argc, char **argv) {
   gettimeofday(&etstart, &tzdummy);
   etstart2 = times(&cputstart);
 
-  printf("BEFORE GAUSS\n");
-
   /* Gaussian Elimination */
   gauss();
 
@@ -274,10 +272,13 @@ void gauss() {
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
 
+    printf("===========%d\n",norm);
+
     // pthread_barrier_init(&row_barrier,NULL,procs+1);
 
     /* create threads */
     for (i = 0; i < procs - 1; i++) {
+      printf("===========procs[%d]%\n",i);
       int *param = malloc(sizeof(*param));
       if (pthread_create(&tids[i], NULL, &elimate, param) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
