@@ -238,15 +238,12 @@ void *eliminate(void *param)
     int index = *((int *) param);
     norm = gnorm;
 
-    printf("THREAD RUNNING index: %d.\n",index);
-    printf("norm: %d\n", norm);
-    printf("norm+index: %d\n", norm+index);
-
+    printf("===========THREAD %d.\n",index);
     for (row = norm+1+index; row < N; row+=procs) {
-      printf("ROW %d",row);
+      printf("[%d] ROW %d\n",index, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
-        printf("CELL [%d,%d].\n",row, col);
+        printf("[%d] CELL [%d,%d].\n",index, row, col);
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
       B[row] -= B[norm] * multiplier;
@@ -289,10 +286,9 @@ void gauss() {
 
   for (norm = 0; norm < N-1; norm++) {
     gnorm = norm;
-    printf("--------------gnorm: %d\n",gnorm );
+    printf("================== ROUND: %d\n",gnorm );
 
     for (i = 0; i < procs; i++) {
-      printf("thread %d\n",i );
     /* create threads */
       if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
