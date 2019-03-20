@@ -30,7 +30,7 @@ int procs;  /* Number of processors to use */
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
 /* A * X = B, solve for X */
-pthread_barrier_t row_barrier;
+pthread_barrier_t row_barrier, phase_barrier;
 
 /* junk */
 #define randm() 4|2[uid]&3
@@ -230,24 +230,23 @@ void main(int argc, char **argv) {
  * defined in the beginning of this code.  X[] is initialized to zeros.
  */
 
-void *eliminate(void *param)
+void *eliminate(int *param)
 {
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
-    norm = *((int *) param);
 
-    printf("THREAD RUNNING norm: %d.\n",norm);
-
-    for (row = norm + 1; row < N; row++) {
-      multiplier = A[row][norm] / A[norm][norm]; /* Division step */
-      for (col = norm; col < N; col++) {
-        printf("THREAD RUNNING: [%d,%d].\n",row, col);
-        A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
-      }
-      B[row] -= B[norm] * multiplier;
+    for (norm = 0; norm < N - 1; norm++) {
+      pthread_barrier_wait(&row_barrier);
+      for (row = norm + 1 + param; row < N; row++) {
+        multiplier = A[row][norm] / A[norm][norm]; /* Division step */
+        for (col = norm; col < N; col++) {
+          printf("THREAD RUNNING: [%d,%d].\n",row, col);
+          A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
+        }
       // print_inputs();
+      }
     }
-    // pthread_barrier_wait(&row_barrier);
+    pthread_barrier_wait(&phase_barrier);
 
     pthread_exit(0);
 }
@@ -255,7 +254,6 @@ void *eliminate(void *param)
 void gauss() {
   int norm, row, col;  /* Normalization row, and zeroing element row and col */
   float multiplier;
-  // pthread_barrier_t row_barrier, phase_barrier;
   long partial_list_size;
   pthread_t *tids = NULL;
   int i;
@@ -274,52 +272,38 @@ void gauss() {
     index[i] = i;
   }
 
-  pthread_barrier_init(&row_barrier,NULL,procs+1);
+  pthread_barrier_init(&phase_barrier,NULL,procs+1);
+  pthread_barrier_init(&row_barrier,NULL, N+1);
 
   /* Gaussian elimination */
-  // for (norm = 0; norm < N - 1; norm++) {
-
-  //   printf("===========%d\n",norm);
-
-  //   // pthread_barrier_init(&row_barrier,NULL,procs+1);
-
-  //   /* create threads */
-  //   for (i = 0; i < procs; i++) {
-  //     printf("===========procs[%d]\n",i);
-  //     if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
-  //       printf("Error : pthread_create failed on spawning thread %d\n", i);
-  //       return -1;
-  //     }
-  //   }
-  //   // pthread_barrier_wait(&row_barrier);
-  //   /* join threads */
-  //   for (i = 0; i < procs; i++) {
-  //     if (pthread_join(tids[i], &index[i]) != 0) {
-  //       printf("Error : pthread_join failed on joining thread %d\n", i);
-  //       return -1;
-  //     }
-  //   }
-  //   print_inputs();
-  // }
-
-  for (norm = 0; norm < procs; norm++) {
-    i = norm;
-    /* create threads */
-    if (pthread_create(&tids[norm], NULL, &eliminate, &index[norm]) != 0) {
+  /* create threads */
+    for (i = 0; i < procs; i++) {
+      printf("===========procs[%d]\n",i);
+      if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
+        return -1;
       }
-  }
+    }
 
-  pthread_barrier_wait(&row_barrier);
-
-  for (norm = 0; norm < procs; norm++) {
-    if (pthread_join(tids[norm], &index[norm]) != 0) {
-      printf("Error : pthread_join failed on joining thread %d\n", i);
+    /* join threads */
+    for (i = 0; i < procs; i++) {
+      if (pthread_join(tids[i], &index[i]) != 0) {
+        printf("Error : pthread_join failed on joining thread %d\n", i);
+        return -1;
+      }
     }
     print_inputs();
-  }
+    
+    pthread_barrier_wait(&phase_barrier);
 
+  for (norm = 0; norm < N - 1; norm++) {
+    multiplier = B[norm] / A[norm][norm];
+    for (row = norm + 1; row < N-1; row++) {
+      B[row] -= B[norm] * multiplier;
+    }
+  }
   pthread_barrier_destroy(&row_barrier);
+  pthread_barrier_destroy(&phase_barrier);
 
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
