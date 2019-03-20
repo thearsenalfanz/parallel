@@ -270,16 +270,21 @@ void gauss() {
   }
   printf("malloc threads\n");
 
-  index[0] = 0;
-  for (i = 1; i < procs; i++)
+  for (i = 0; i < procs; i++)
   {
     index[i] = i;
   }
 
+  printf("Initialize barrier\n");
+
   pthread_barrier_init(&row_barrier,NULL,procs+1);
+
+  printf("start\n");
+
 
   for (norm = 0; norm < N-1; norm++) {
 
+    printf("------------------gnorm%d\n",gnorm);
     gnorm = norm;
 
     for (i = 0; i < procs; i++) {
