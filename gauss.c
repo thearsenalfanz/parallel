@@ -51,7 +51,6 @@ unsigned int time_seed() {
 void parameters(int argc, char **argv) {
   int submit = 0;  /* = 1 if submission parameters should be used */
   int seed = 0;  /* Random seed */
-  char uid[L_cuserid + 2]; /*User name */
 
   /* Read command-line arguments */
   srand(time_seed());  /* Randomize */
@@ -78,6 +77,19 @@ void parameters(int argc, char **argv) {
       }
     }
   }
+
+  /* set procs */
+  void m_set_procs(int p)
+  {
+    procs = p;
+  }
+
+  /* return number of process */
+  int m_get_numprocs()
+  {
+    return procs;
+  }
+
   /* Interpret command-line args */
   if (!submit) {
     N = atoi(argv[1]);
