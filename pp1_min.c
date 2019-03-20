@@ -127,6 +127,10 @@ void *find_min_rw(void *list_ptr) {
 	for (i = 0; i < partial_list_size; i++)
 		if (partial_list_pointer[i] < my_min)
 			my_min = partial_list_pointer[i];
+
+	/* initalize */
+	mylib_rwlock_init (&read_write_lock);
+
 	/* lock the mutex associated with minimum_value and update the variable as required */
 	mylib_rwlock_rlock(&read_write_lock);
 	if (my_min < minimum_value) {
