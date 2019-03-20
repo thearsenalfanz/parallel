@@ -235,13 +235,12 @@ void *eliminate(void *param)
 {
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
-    int *index = *((int *) param);
+    int index = *((int *) param);
     norm = gnorm;
 
     printf("THREAD RUNNING index: %d.\n",index);
     printf("norm: %d\n", norm);
     printf("norm+index: %d\n", norm+index);
-    printf("N: %d\n, procs = %d", N, procs);
 
     for (row = norm+1+index; row < N; row+=procs) {
       printf("ROW %d",row);
@@ -278,6 +277,7 @@ void gauss() {
   for (i = 0; i < procs; i++)
   {
     index[i] = i;
+    printf("index[%d]\n",i );
   }
 
   printf("Initialize barrier\n");
