@@ -16,9 +16,9 @@
 #include <sys/times.h>
 #include <sys/time.h>
 #include <limits.h>
-#include <time.h>
 // #include <ulocks.h>
 // #include <task.h>
+#include <time.h>
 
 /* Program Parameters */
 #define MAXN 2000  /* Max value of N */
@@ -35,9 +35,9 @@ volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
 
 /* Prototype */
 void gauss();  /* The function you will provide.
-    * It is this routine that is timed.
-    * It is called only on the parent.
-    */
+		* It is this routine that is timed.
+		* It is called only on the parent.
+		*/
 
 /* returns a seed for srand based on the time */
 unsigned int time_seed() {
@@ -46,6 +46,18 @@ unsigned int time_seed() {
 
   gettimeofday(&t, &tzdummy);
   return (unsigned int)(t.tv_usec);
+}
+
+/* set procs */
+void m_set_procs(int p)
+{
+  procs = p;
+}
+
+/* return number of process */
+int m_get_numprocs()
+{
+  return procs;
 }
 
 /* Set the program parameters from the command-line arguments */
@@ -67,31 +79,18 @@ void parameters(int argc, char **argv) {
     }
     else {
       if (argc == 4) {
-  seed = atoi(argv[3]);
-  srand(seed);
-  printf("Random seed = %i\n", seed);
+	seed = atoi(argv[3]);
+	srand(seed);
+	printf("Random seed = %i\n", seed);
       }
       else {
-  printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
-         argv[0]);
-  printf("       %s submit\n", argv[0]);
-  exit(0);
+	printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
+	       argv[0]);
+	printf("       %s submit\n", argv[0]);
+	exit(0);
       }
     }
   }
-
-  /* set procs */
-  void m_set_procs(int p)
-  {
-    procs = p;
-  }
-
-  /* return number of process */
-  int m_get_numprocs()
-  {
-    return procs;
-  }
-
   /* Interpret command-line args */
   if (!submit) {
     N = atoi(argv[1]);
@@ -106,7 +105,7 @@ void parameters(int argc, char **argv) {
     }
     if (procs > m_get_numprocs()) {
       printf("Warning: %i processors requested; only %i available.\n",
-       procs, m_get_numprocs());
+	     procs, m_get_numprocs());
       procs = m_get_numprocs();
     }
   }
@@ -142,7 +141,7 @@ void print_inputs() {
     printf("\nA =\n\t");
     for (row = 0; row < N; row++) {
       for (col = 0; col < N; col++) {
-  printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
+	printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
       }
     }
     printf("\nB = [");
@@ -185,8 +184,6 @@ void main(int argc, char **argv) {
   gettimeofday(&etstart, &tzdummy);
   etstart2 = times(&cputstart);
 
-  printf("BEFORE GAUSS\n");
-
   /* Gaussian Elimination */
   gauss();
 
@@ -202,23 +199,23 @@ void main(int argc, char **argv) {
 
   /* Display timing results */
   printf("\nElapsed time = %g ms.\n",
-   (float)(usecstop - usecstart)/(float)1000);
+	 (float)(usecstop - usecstart)/(float)1000);
   /*printf("               (%g ms according to times())\n",
    *       (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
    */
   printf("(CPU times are accurate to the nearest %g ms)\n",
-   1.0/(float)CLOCKS_PER_SEC * 1000.0);
+	 1.0/(float)CLOCKS_PER_SEC * 1000.0);
   printf("My total CPU time for parent = %g ms.\n",
-   (float)( (cputstop.tms_utime + cputstop.tms_stime) -
-      (cputstart.tms_utime + cputstart.tms_stime) ) /
-   (float)CLOCKS_PER_SEC * 1000);
+	 (float)( (cputstop.tms_utime + cputstop.tms_stime) -
+		  (cputstart.tms_utime + cputstart.tms_stime) ) /
+	 (float)CLOCKS_PER_SEC * 1000);
   printf("My system CPU time for parent = %g ms.\n",
-   (float)(cputstop.tms_stime - cputstart.tms_stime) /
-   (float)CLOCKS_PER_SEC * 1000);
+	 (float)(cputstop.tms_stime - cputstart.tms_stime) /
+	 (float)CLOCKS_PER_SEC * 1000);
   printf("My total CPU time for child processes = %g ms.\n",
-   (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
-      (cputstart.tms_cutime + cputstart.tms_cstime) ) /
-   (float)CLOCKS_PER_SEC * 1000);
+	 (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
+		  (cputstart.tms_cutime + cputstart.tms_cstime) ) /
+	 (float)CLOCKS_PER_SEC * 1000);
       /* Contrary to the man pages, this appears not to include the parent */
   printf("--------------------------------------------\n");
 
@@ -230,76 +227,28 @@ void main(int argc, char **argv) {
 /* Provided global variables are MAXN, N, procs, A[][], B[], and X[],
  * defined in the beginning of this code.  X[] is initialized to zeros.
  */
-
-void *elimate(void *param)
-{
-    pthread_barrier_t row_barrier;
-    int norm, row, col;  /* Normalization row, and zeroing element row and col */
-    float multiplier;
-    norm = *((int *) param);
-
-    for (row = norm + 1; row < N; row++) {
-      multiplier = A[row][norm] / A[norm][norm]; /* Division step */
-      for (col = norm; col < N; col++) {
-        A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
-      }
-      B[row] -= B[norm] * multiplier;
-    }
-    // pthread_barrier_wait(&row_barrier);
-}
-
 void gauss() {
-  int norm, row, col;  /* Normalization row, and zeroing element row and col */
+  int norm, row, col;  /* Normalization row, and zeroing
+			* element row and col */
   float multiplier;
-  // pthread_barrier_t row_barrier, phase_barrier;
-  long partial_list_size;
-  void *res = NULL;
-  pthread_t *tids = NULL;
-  int i;
 
-  /* Initialize thead ids*/
-  tids = malloc(sizeof(pthread_t) * procs);
-  if (tids == NULL) {
-    printf("Error : could not init the tids\n");
-    return -1;
-  }
-  printf("malloc threads\n");
-
-  // if (nt == 1) {
-  //   partial_list_size = nelems;
-  // } else {
-  //   partial_list_size = (nelems / (long)(nt)) + (nelems % (long)(nt));
-  // }
+  printf("Computing Serially.\n");
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
-
-    // pthread_barrier_init(&row_barrier,NULL,procs+1);
-
-    /* create threads */
-    for (i = 0; i < procs - 1; i++) {
-      int *param = malloc(sizeof(*param));
-      if (pthread_create(&tids[i], NULL, &elimate, param) != 0) {
-        printf("Error : pthread_create failed on spawning thread %d\n", i);
-        return -1;
+    for (row = norm + 1; row < N; row++) {
+      multiplier = A[row][norm] / A[norm][norm];
+      for (col = norm; col < N; col++) {
+	A[row][col] -= A[norm][col] * multiplier;
       }
-    }
-    // pthread_barrier_wait(&row_barrier);
-    /* join threads */
-    for (i = 0; i < procs; i++) {
-      if (pthread_join(tids[i], &res) != 0) {
-        printf("Error : pthread_join failed on joining thread %d\n", i);
-        return -1;
-      }
+      B[row] -= B[norm] * multiplier;
     }
   }
-
-
-
-
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
    */
+
+
   /* Back substitution */
   for (row = N - 1; row >= 0; row--) {
     X[row] = B[row];
