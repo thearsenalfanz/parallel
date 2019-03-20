@@ -231,18 +231,20 @@ void main(int argc, char **argv) {
 
 void *eliminate(void *param)
 {
-  printf("THREAD RUNNING.\n");
     pthread_barrier_t row_barrier;
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
     norm = *((int *) param);
 
     for (row = norm + 1; row < N; row++) {
+      printf("THREAD RUNNING: %d.\n",norm);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
       B[row] -= B[norm] * multiplier;
+      print_inputs();
+
     }
     // pthread_barrier_wait(&row_barrier);
 }
