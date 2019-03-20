@@ -285,6 +285,8 @@ void gauss() {
       }
     }
 
+    pthread_barrier_wait(&phase_barrier);
+
     /* join threads */
     for (i = 0; i < procs; i++) {
       if (pthread_join(tids[i], &index[i]) != 0) {
@@ -293,8 +295,6 @@ void gauss() {
       }
     }
     print_inputs();
-    
-    pthread_barrier_wait(&phase_barrier);
 
   for (norm = 0; norm < N - 1; norm++) {
     multiplier = B[norm] / A[norm][norm];
