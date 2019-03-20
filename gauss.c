@@ -247,7 +247,7 @@ void *eliminate(void *param)
       B[row] -= B[norm] * multiplier;
       // print_inputs();
     }
-    pthread_barrier_wait(&row_barrier);
+    // pthread_barrier_wait(&row_barrier);
 
     pthread_exit(0);
 }
@@ -278,9 +278,8 @@ void gauss() {
   for (norm = 0; norm < N - 1; norm++) {
 
     printf("===========%d\n",norm);
-    printf("%d\n", procs);
 
-    pthread_barrier_init(&row_barrier,NULL,procs+1);
+    // pthread_barrier_init(&row_barrier,NULL,procs+1);
 
     /* create threads */
     for (i = 0; i < procs; i++) {
@@ -290,7 +289,7 @@ void gauss() {
         return -1;
       }
     }
-    pthread_barrier_wait(&row_barrier);
+    // pthread_barrier_wait(&row_barrier);
     /* join threads */
     for (i = 0; i < procs; i++) {
       if (pthread_join(tids[i], &index[i]) != 0) {
@@ -301,7 +300,7 @@ void gauss() {
     print_inputs();
   }
 
-  pthread_barrier_destroy(&row_barrier);
+  // pthread_barrier_destroy(&row_barrier);
 
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
