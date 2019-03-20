@@ -67,12 +67,12 @@ void *find_min(void *list_ptr)
 
 /* ---------------------------------------- INIT RW LOCK */
 
-void mylib_rwlock_init (mylib_rwlock_t *l) {
-	l -> readers = l -> writer = l -> pending_writers = 0;
-	pthread_mutex_init(&(l -> read_write_lock), NULL);
-	pthread_cond_init(&(l -> readers_proceed), NULL);
-	pthread_cond_init(&(l -> writer_proceed), NULL);
-}
+// void mylib_rwlock_init (mylib_rwlock_t *l) {
+// 	l -> readers = l -> writer = l -> pending_writers = 0;
+// 	pthread_mutex_init(&(l -> read_write_lock), NULL);
+// 	pthread_cond_init(&(l -> readers_proceed), NULL);
+// 	pthread_cond_init(&(l -> writer_proceed), NULL);
+// }
 
 void mylib_rwlock_rlock(mylib_rwlock_t *l) {
 	/* if there is a write lock or pending writers, perform condition
