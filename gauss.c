@@ -250,7 +250,7 @@ void *eliminate(void *param)
       // print_inputs();
     }
     pthread_barrier_wait(&row_barrier);
-    free(index);
+    // free(index);
     pthread_exit(0);
 }
 
@@ -260,7 +260,7 @@ void gauss() {
   float multiplier;
   long partial_list_size;
   pthread_t *tids = NULL;
-  int i;
+  int i,t;
   int *index = calloc(procs, sizeof(int));
 
   /* Initialize thead ids*/
