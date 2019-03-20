@@ -369,6 +369,16 @@ int main()
 
 	free(list);
 	list = NULL;
+
+	/* plot performance */
+    gnuplot_ctrl *h;
+    int i;
+
+    h = gnuplot_init();
+    gnuplot_plot_x(h, duration, 4, "FIND MIN") ;
+    sleep(2);
+    gnuplot_close(h);
+
 	return 0;
 
 }
