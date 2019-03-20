@@ -245,7 +245,7 @@ void *eliminate(void *param)
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
       B[row] -= B[norm] * multiplier;
-      print_inputs();
+      // print_inputs();
     }
     pthread_barrier_wait(&row_barrier);
 
@@ -298,6 +298,7 @@ void gauss() {
         return -1;
       }
     }
+    print_inputs();
   }
 
   pthread_barrier_destroy(&row_barrier);
