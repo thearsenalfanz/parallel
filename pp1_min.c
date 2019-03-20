@@ -67,6 +67,8 @@ int init(nt,nelems)
 	void *res = NULL;
 	/* ---- */
 
+	printf("Number of elements = %d\nSeed value = %d\n", nelems, seed);
+
 	minimum_value = INT_MAX;
 
 	/* init the mutex */
