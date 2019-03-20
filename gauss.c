@@ -305,14 +305,13 @@ void gauss() {
     /* create threads */
     if (pthread_create(&tids[norm], NULL, &eliminate, &index[norm]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
-        return -1;
       }
   }
 
   for (norm = 0; norm < N - 1; norm++) {
     if (pthread_join(tids[norm], &index[norm]) != 0) {
       printf("Error : pthread_join failed on joining thread %d\n", i);
-      return -1;
+    }
     print_inputs();
   }
 
