@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <limits.h>
 #include <pthread.h>
-
+#include "gnuplot_i.h"
 
 /* ---------------------------------------- GLOBALS */
 pthread_mutex_t	minimum_value_lock;
@@ -13,6 +13,8 @@ int minimum_value;
 long partial_list_size;
 int err;
 int *list = NULL;
+double duration[4];
+double duration_rw[4];
 
 /* ---------------------------------------- STRUCT  */
 typedef struct {
@@ -215,8 +217,8 @@ int init(nt,nelems)
 	end = mysecond();
 
 	printf("Minimum value found: %d\n", minimum_value);
-	printf("Runtime of %d threads = %f seconds\n", nt, (end - start));
-
+	duration[index] = (end - start);
+	printf("Runtime of %d threads = %f seconds\n", nt, duration[index]);
 	free(tids);
 	tids = NULL;
 
@@ -226,13 +228,14 @@ int init(nt,nelems)
 
 /* ---------------------------------------- INIT_RW */
 /* Using read-write locks for computing the minimum of a list of numbers */
-int init_rw(nt,nelems)
+double init_rw(nt,nelems,index)
 {
 	/* vars */
 	int i = 0;
 	long cur = 0;
 	double start = 0.;
 	double end = 0.;
+	double duration = 0.0;
 	pthread_t *tids = NULL;
 	void *res = NULL;
 	/* ---- */
@@ -296,7 +299,8 @@ int init_rw(nt,nelems)
 	end = mysecond();
 
 	printf("Minimum value found: %d\n", minimum_value);
-	printf("Runtime of %d threads = %f seconds\n", nt, (end - start));
+	duration_rw[index] = (end - start);
+	printf("Runtime of %d threads = %f seconds\n", nt, duration_rw[index]);
 
 	free(tids);
 	tids = NULL;
@@ -333,32 +337,32 @@ int main()
 
 	/* see results of from using thread 1,2,4 and 8 using find_min */
 	printf("----------RESULTS FROM FIND_MIN----------\n");
-	err = init(1,nelems);
+	err = init(1,nelems,0);
 	if(err == -1)
 		return -1;
-	err = init(2,nelems);
+	err = init(2,nelems,1);
 	if(err == -1)
 		return -1;
-	err = init(4,nelems);
+	err = init(4,nelems,2);
 	if(err == -1)
 		return -1;
-	err = init(8,nelems);
+	err = init(8,nelems,3);
 	if(err == -1)
 		return -1;
 	printf("------------------------------------------\n");
 
 	/* see results of from using thread 1,2,4 and 8 using find_min_rw */
 	printf("----------RESULTS FROM FIND_MIN_RW----------\n");
-	err = init_rw(1,nelems);
+	err = init_rw(1,nelems,0);
 	if(err == -1)
 		return -1;
-	err = init_rw(2,nelems);
+	err = init_rw(2,nelems,1);
 	if(err == -1)
 		return -1;
-	err = init_rw(4,nelems);
+	err = init_rw(4,nelems,2);
 	if(err == -1)
 		return -1;
-	err = init_rw(8,nelems);
+	err = init_rw(8,nelems,3);
 	if(err == -1)
 		return -1;
 	printf("------------------------------------------\n");
