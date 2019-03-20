@@ -236,9 +236,8 @@ void *eliminate(void *param)
     float multiplier;
     norm = *((int *) param);
 
-    printf("THREAD RUNNING norm: %d.\n",norm);
-
     for (row = norm; row < N; row++) {
+      printf("THREAD RUNNING norm: %d.\n",norm);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
         printf("THREAD RUNNING: [%d,%d].\n",row, col);
