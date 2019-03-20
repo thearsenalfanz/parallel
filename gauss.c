@@ -254,7 +254,7 @@ void *eliminate(void *param)
 
     printf("===========THREAD %d.\n",index);
 
-    // free(index);
+    free(index);
     pthread_exit(0);
 }
 
