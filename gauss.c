@@ -276,6 +276,8 @@ void gauss() {
 
     // pthread_barrier_init(&row_barrier,NULL,procs+1);
 
+    rintf("===========procs = %d\n",procs);
+
     /* create threads */
     for (i = 0; i < procs - 1; i++) {
       printf("===========procs[%d]%\n",i);
