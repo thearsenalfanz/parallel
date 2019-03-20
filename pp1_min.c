@@ -147,7 +147,7 @@ void *find_min_rw(void *list_ptr) {
 
 /* ---------------------------------------- INIT  */
 /* Using read-write locks for computing the minimum of a list of numbers */
-int init(nt,nelems)
+int init(int nt,int nelems, int index)
 {
 	/* vars */
 	int i = 0;
@@ -228,7 +228,7 @@ int init(nt,nelems)
 
 /* ---------------------------------------- INIT_RW */
 /* Using read-write locks for computing the minimum of a list of numbers */
-double init_rw(nt,nelems,index)
+double init_rw(int nt,int nelems,int index)
 {
 	/* vars */
 	int i = 0;
