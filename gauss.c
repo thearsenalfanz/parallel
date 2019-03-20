@@ -214,13 +214,14 @@ void main(int argc, char **argv) {
  * defined in the beginning of this code.  X[] is initialized to zeros.
  */
 
-void *elimate()
+void *elimate(void *param)
 {
     pthread_barrier_t row_barrier;
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
+    norm = *((int *) param);
 
-    for (row = norm + 1 + t; row < tn; row++) {
+    for (row = norm + 1; row < N; row++) {
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
@@ -244,11 +245,11 @@ void gauss() {
     return -1;
   }
 
-  if (nt == 1) {
-    partial_list_size = nelems;
-  } else {
-    partial_list_size = (nelems / (long)(nt)) + (nelems % (long)(nt));
-  }
+  // if (nt == 1) {
+  //   partial_list_size = nelems;
+  // } else {
+  //   partial_list_size = (nelems / (long)(nt)) + (nelems % (long)(nt));
+  // }
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
@@ -258,7 +259,7 @@ void gauss() {
     /* create threads */
     for (i = 0; i < procs - 1; i++) {
       int *param = malloc(sizeof(*param));
-      if (pthread_create(&tids[i], NULL, &elimate, &index) != 0) {
+      if (pthread_create(&tids[i], NULL, &elimate, param) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
         return -1;
       }
