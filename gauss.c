@@ -285,16 +285,10 @@ void gauss() {
     gnorm = norm;
     printf("================== ROUND: %d\n",gnorm );
 
-    for (i = 0; i < procs; i++)
-    {
-      index[i] = i;
-      printf("index[%d]\n",i );
-    }
-
     for (t = 0; t < procs; t++) {
     /* create threads */
       printf("INDEX %d = %d\n",t,index[t] );
-      if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
+      if (pthread_create(&tids[t], NULL, &eliminate, &t) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", t);
       }
     }
