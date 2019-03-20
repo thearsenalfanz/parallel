@@ -75,8 +75,7 @@ void mylib_rwlock_init (mylib_rwlock_t *l) {
 }
 
 void mylib_rwlock_rlock(mylib_rwlock_t *l) {
-	/* if there is a write lock or pending writers, perform condition
-	wait.. else increment count of readers and grant read lock */
+	/* if there is a write lock or pending writers, perform condition wait.. else increment count of readers and grant read lock */
 	// pthread_mutex_lock(&(l -> read_write_lock));
 	while ((l -> pending_writers > 0) || (l -> writer > 0))
 		pthread_cond_wait(&(l -> readers_proceed), &(l -> read_write_lock));
@@ -85,8 +84,7 @@ void mylib_rwlock_rlock(mylib_rwlock_t *l) {
 }
 
 void mylib_rwlock_wlock(mylib_rwlock_t *l) {
-	/* if there are readers or writers, increment pending writers count and wait. 
-	On being woken, decrement pending writers count and increment writer count */
+	/* if there are readers or writers, increment pending writers count and wait. On being woken, decrement pending writers count and increment writer count */
 	// pthread_mutex_lock(&(l -> read_write_lock));
 	while ((l -> writer > 0) || (l -> readers > 0)) {
 		l -> pending_writers ++;
