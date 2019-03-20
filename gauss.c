@@ -235,12 +235,12 @@ void *eliminate(void *param)
 {
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
-    int *index = (int *) param;
+    int *index = *((int *) param);
     norm = gnorm;
 
     printf("THREAD RUNNING index: %d.\n",index);
 
-    for (row = norm+1+*index; row < N; row+=procs) {
+    for (row = norm+1+index; row < N; row+=procs) {
       
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
