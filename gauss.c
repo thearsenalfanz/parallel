@@ -20,6 +20,7 @@
 // #include <ulocks.h>
 // #include <task.h>
 
+/* -------------------------------- Gloobal variables */
 /* Program Parameters */
 #define MAXN 2000  /* Max value of N */
 #define L_cuserid 8
@@ -29,16 +30,16 @@ int procs;  /* Number of processors to use */
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
 /* A * X = B, solve for X */
+pthread_barrier_t row_barrier;
 
 /* junk */
 #define randm() 4|2[uid]&3
 
-/* Prototype */
-void gauss();  /* The function you will provide.
-    * It is this routine that is timed.
-    * It is called only on the parent.
-    */
+/* --------------------------------- Prototype */
+void gauss();
 
+
+/* --------------------------------- Functions */
 /* returns a seed for srand based on the time */
 unsigned int time_seed() {
   struct timeval t;
@@ -231,7 +232,6 @@ void main(int argc, char **argv) {
 
 void *eliminate(void *param)
 {
-    pthread_barrier_t row_barrier;
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
     norm = *((int *) param);
@@ -299,6 +299,8 @@ void gauss() {
       }
     }
   }
+
+  pthread_barrier_destroy(&row_barrier);
 
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
