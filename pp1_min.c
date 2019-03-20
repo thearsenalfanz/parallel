@@ -91,6 +91,7 @@ int main()
 }
 
 void findmin(nt)
+long nt;
 {
 	/* vars */
 	int i = 0;
