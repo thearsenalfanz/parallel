@@ -319,7 +319,7 @@ void gauss() {
     print_inputs();
   }
 
-  //pthread_barrier_destroy(&row_barrier);
+  pthread_barrier_destroy(&row_barrier);
 
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
