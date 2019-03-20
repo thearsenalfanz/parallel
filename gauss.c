@@ -235,15 +235,15 @@ void *eliminate(void *param)
 {
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
-    int index = *((int *) param);
+    int i = *((int *) param);
     norm = gnorm;
 
-    printf("===========THREAD %d.\n",index);
-    for (row = norm+1+index; row < N; row+=procs) {
-      printf("[%d] ROW %d\n",index, row);
+    printf("===========THREAD %d.\n",i;
+    for (row = norm+1+i; row < N; row+=procs) {
+      printf("[%d] ROW %d\n",i, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
-        printf("[%d] CELL [%d,%d].\n",index, row, col);
+        printf("[%d] CELL [%d,%d].\n",i, row, col);
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
       B[row] -= B[norm] * multiplier;
@@ -252,9 +252,8 @@ void *eliminate(void *param)
 
     pthread_barrier_wait(&row_barrier);
 
-    printf("===========THREAD %d.\n",index);
+    printf("===========THREAD %d.\n",i);
 
-    free(index);
     pthread_exit(0);
 }
 
