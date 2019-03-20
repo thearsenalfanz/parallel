@@ -79,10 +79,10 @@ int main()
 		list[l] = (long)(rand());
 	}
 
-	process(1);
-	process(2);
-	process(4);
-	process(8);
+	findmin(1);
+	findmin(2);
+	findmin(4);
+	findmin(8);
 
 	free(list);
 	list = NULL;
@@ -90,7 +90,7 @@ int main()
 
 }
 
-void process(nt)
+void findmin(nt)
 {
 	/* vars */
 	int i = 0;
