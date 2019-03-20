@@ -26,6 +26,7 @@
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
+int gnorm;
 
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
@@ -234,9 +235,10 @@ void *eliminate(void *param)
 {
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
-    norm = *((int *) param);
+    int *index = *((int *) param);
+    norm = gnorm;
 
-    for (row = norm; row < N; row++) {
+    for (row = norm+1+ *index; row < N; row+=procs) {
       printf("THREAD RUNNING norm: %d.\n",norm);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
@@ -273,26 +275,34 @@ void gauss() {
   index[0] = 0;
   for (i = 1; i < procs; i++)
   {
-    index[i] = index[i-1]+d;
-    printf("index[%d]\n", index[i]);
+    index[i] = i;
   }
 
   pthread_barrier_init(&row_barrier,NULL,procs+1);
 
-  for (norm = 0; norm < procs; norm++) {
+  for (norm = 0; norm < N-1; norm++) {
+
+    gnorm = norm;
+
+    for (i = 0; i < procs; i++) {
     /* create threads */
-    if (pthread_create(&tids[norm], NULL, &eliminate, &index[norm]) != 0) {
+      if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
       }
-  }
-  pthread_barrier_wait(&row_barrier);
-
-  for (norm = 0; norm < procs; norm++) {
-    if (pthread_join(tids[norm], &index[norm]) != 0) {
-      printf("Error : pthread_join failed on joining thread %d\n", i);
     }
-    print_inputs();
-  }
+
+    pthread_barrier_wait(&row_barrier);
+
+    for (i = 0; i < procs; i++) {
+      if (pthread_join(tids[i], &index[i]) != 0) {
+        printf("Error : pthread_join failed on joining thread %d\n", i);
+      }
+      print_inputs();
+    }
+
+  }  
+
+
 
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
