@@ -13,7 +13,7 @@ void partialPivot(int N, double** A, double* b, int currentPosition);
 void printMatrix(int N, double** A, double* b);
 void backSubstitution(int N, double** A, double* b, double* x, int numThreads);
 void printSolutionVector(double* x, int N);
-void checkAnswer(double** A, double* x, double* b, int N);
+// void checkAnswer(double** A, double* x, double* b, int N);
 void *eliminate(void *threadarg);
 
 struct Thread_Data {
@@ -106,7 +106,7 @@ int main(int argc, char** argv){
 	totalTime = ((endSubstitution.tv_sec  - startTime.tv_sec) * 1000000u + endSubstitution.tv_usec - startTime.tv_usec) / 1.e6;
 
 	printSolutionVector(x, N);
-	checkAnswer(A,x,b,N);
+	// checkAnswer(A,x,b,N);
 
 	printf("Substitution execution time: %.3f seconds.\n", eliminationTime);
 	printf("Substitution execution time: %.3f seconds.\n", substitutionTime);
@@ -204,7 +204,7 @@ void backSubstitution(int N, double** A, double* b, double* x, int numThreads){
 	}
 }
 
-void checkAnswer(double** A, double* x, double* b, int N){
+/*void checkAnswer(double** A, double* x, double* b, int N){
 
 	double* result_vector = (double*) malloc(sizeof(double)*N);
 	double row_sum; 
@@ -225,4 +225,4 @@ void checkAnswer(double** A, double* x, double* b, int N){
 	}
 	sumOfSquares = sqrt(sumOfSquares);
 	printf("\nThe L2-Norm of the result vector from Ax-b is: %.20f\n", sumOfSquares);
-}
+}*/
