@@ -11,6 +11,7 @@
 pthread_mutex_t	minimum_value_lock;
 int minimum_value;
 long partial_list_size;
+int err;
 
 /* ---------------------------------------- MYSECOND */
 static double 
@@ -79,10 +80,18 @@ int main()
 		list[l] = (long)(rand());
 	}
 
-	threadprocess(1);
-	threadprocess(2);
-	threadprocess(4);
-	threadprocess(8);
+	err = init(1,nelems);
+	if(err == -1)
+		return -1;
+	err = init(2,nelems);
+	if(err == -1)
+		return -1;
+	err = init(4,nelems);
+	if(err == -1)
+		return -1;
+	err = init(8,nelems);
+	if(err == -1)
+		return -1;
 
 	free(list);
 	list = NULL;
@@ -90,8 +99,7 @@ int main()
 
 }
 
-void threadprocess(nt)
-long nt;
+int init(nt,nelems)
 {
 	/* vars */
 	int i = 0;
@@ -161,6 +169,8 @@ long nt;
 
 	free(tids);
 	tids = NULL;
+
+	return 0;
 
 }
 
