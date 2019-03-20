@@ -238,8 +238,10 @@ void *eliminate(void *param)
     int *index = *((int *) param);
     norm = gnorm;
 
+    printf("THREAD RUNNING index: %d.\n",index);
+
     for (row = norm+1+ *index; row < N; row+=procs) {
-      printf("THREAD RUNNING norm: %d.\n",norm);
+      
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
         printf("THREAD RUNNING: [%d,%d].\n",row, col);
@@ -283,11 +285,10 @@ void gauss() {
 
 
   for (norm = 0; norm < N-1; norm++) {
-
-    printf("------------------gnorm%d\n",gnorm);
     gnorm = norm;
 
     for (i = 0; i < procs; i++) {
+      printf("thread %d\n",i );
     /* create threads */
       if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
