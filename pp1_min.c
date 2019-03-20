@@ -55,7 +55,35 @@ void *find_min(void *list_ptr)
 	pthread_exit(0);
 }
 
-/* ---------------------------------------- INIT */
+/* ---------------------------------------- FIND_MIN_RW */
+void *find_min_rw(void *list_ptr) {
+
+	/* vars */
+	int *partial_list_pointer = NULL;
+	int my_min = 0;
+	long i = 0;
+	/* ---- */
+
+	int *partial_list_pointer, my_min, i;
+
+	partial_list_pointer = (int *) list_ptr;
+	for (i = 0; i < partial_list_size; i++)
+		if (partial_list_pointer[i] < my_min)
+			my_min = partial_list_pointer[i];
+	/* lock the mutex associated with minimum_value and update the variable as required */
+	mylib_rwlock_rlock(&read_write_lock);
+	if (my_min < minimum_value) {
+		mylib_rwlock_unlock(&read_write_lock);
+		mylib_rwlock_wlock(&read_write_lock);
+		minimum_value = my_min;
+	}
+	/* and unlock the mutex */
+	mylib_rwlock_unlock(&read_write_lock);
+	pthread_exit(0);
+}
+
+/* ---------------------------------------- INIT  */
+/* Using read-write locks for computing the minimum of a list of numbers */
 int init(nt,nelems)
 {
 	/* vars */
@@ -135,6 +163,87 @@ int init(nt,nelems)
 
 }
 
+/* ---------------------------------------- INIT_RW */
+/* Using read-write locks for computing the minimum of a list of numbers */
+int init_rw(nt,nelems)
+{
+	/* vars */
+	int i = 0;
+	long cur = 0;
+	double start = 0.;
+	double end = 0.;
+	pthread_t *tids = NULL;
+	void *res = NULL;
+	/* ---- */
+
+	minimum_value = INT_MAX;
+
+	/* init the mutex */
+	pthread_mutex_init(&minimum_value_lock, NULL);
+	
+
+	/* sanity check */
+	if (nt < 1) {
+		printf("error : not enough threads\n");
+		return -1;
+	}
+	if (nelems <= (long)(nt)) {
+		printf("error : not enough elements\n");
+		return -1;
+	}
+
+	tids = malloc(sizeof(pthread_t) * nt);
+	if (tids == NULL) {
+		printf("Error : could not init the tids\n");
+		return -1;
+	}
+
+	if (nt == 1) {
+		partial_list_size = nelems;
+	} else {
+		partial_list_size = (nelems / (long)(nt)) + (nelems % (long)(nt));
+	}
+
+
+	start = mysecond();
+	/* create threads */
+	for (i = 0; i < nt; i++) {
+		if (pthread_create(&tids[i], NULL, &find_min_rw, &list[cur]) != 0) {
+			printf("Error : pthread_create failed on spawning thread %d\n", i);
+			return -1;
+		}
+		cur += partial_list_size;
+
+		/*
+		 * we do this check in order to ensure that our threads
+		 * down't go out of bounds of the list
+		 * 
+		 */
+		if ((cur + partial_list_size) > nelems) {
+			cur = nelems - partial_list_size;
+		}
+	}
+
+	/* join threads */
+	for (i = 0; i < nt; i++) {
+		if (pthread_join(tids[i], &res) != 0) {
+			printf("Error : pthread_join failed on joining thread %d\n", i);
+			return -1;
+		}
+	}
+
+	end = mysecond();
+
+	printf("Minimum value found: %d\n", minimum_value);
+	printf("Runtime of %d threads = %f seconds\n", nt, (end - start));
+
+	free(tids);
+	tids = NULL;
+
+	return 0;
+
+}
+
 /* ---------------------------------------- MAIN */
 int main()
 {
@@ -145,7 +254,7 @@ int main()
 	int seed = 10;
 	/* ---- */
 
-	printf("Number of elements = %d\nSeed value = %d\n", nelems, seed);
+	printf("Number of elements = %d\nSeed value = %d\n\n", nelems, seed);
 
 	/* init lists, list_ptr, partial_list_size */
 	list = malloc(sizeof(int) * nelems);
@@ -153,12 +262,16 @@ int main()
 		printf("Error : could not init the list\n");
 		return -1;
 	}
+
+	/* randomly generate numbers */
 	
 	srand(seed);
 	for (l = 0; l < nelems; l++) {
 		list[l] = (long)(rand());
 	}
 
+	/* see results of from using thread 1,2,4 and 8 using find_min */
+	printf("----------RESULTS FROM FIND_MIN----------\n");
 	err = init(1,nelems);
 	if(err == -1)
 		return -1;
@@ -171,6 +284,23 @@ int main()
 	err = init(8,nelems);
 	if(err == -1)
 		return -1;
+	printf("------------------------------------------\n");
+
+	/* see results of from using thread 1,2,4 and 8 using find_min_rw */
+	printf("----------RESULTS FROM FIND_MIN_RW----------\n");
+	err = init_rw(1,nelems);
+	if(err == -1)
+		return -1;
+	err = init_rw(2,nelems);
+	if(err == -1)
+		return -1;
+	err = init_rw(4,nelems);
+	if(err == -1)
+		return -1;
+	err = init_rw(8,nelems);
+	if(err == -1)
+		return -1;
+	printf("------------------------------------------\n");
 
 	free(list);
 	list = NULL;
