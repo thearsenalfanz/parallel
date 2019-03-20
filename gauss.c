@@ -250,7 +250,7 @@ void *eliminate(void *param)
       // print_inputs();
     }
     pthread_barrier_wait(&row_barrier);
-
+    free(index);
     pthread_exit(0);
 }
 
