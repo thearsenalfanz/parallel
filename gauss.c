@@ -238,7 +238,7 @@ void *eliminate(void *param)
 
     printf("THREAD RUNNING norm: %d.\n",norm);
 
-    for (row = norm + 1; row < N; row++) {
+    for (row = norm; row < N; row++) {
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
         printf("THREAD RUNNING: [%d,%d].\n",row, col);
@@ -247,7 +247,7 @@ void *eliminate(void *param)
       B[row] -= B[norm] * multiplier;
       // print_inputs();
     }
-    // pthread_barrier_wait(&row_barrier);
+    pthread_barrier_wait(&row_barrier);
 
     pthread_exit(0);
 }
@@ -278,15 +278,17 @@ void gauss() {
     printf("index[%d]\n", index[i]);
   }
 
+  pthread_barrier_init(&row_barrier,NULL,procs+1);
 
-  for (norm = 0; norm < procs - 1; norm++) {
+  for (norm = 0; norm < procs; norm++) {
     /* create threads */
     if (pthread_create(&tids[norm], NULL, &eliminate, &index[norm]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
       }
   }
+  pthread_barrier_wait(&row_barrier);
 
-  for (norm = 0; norm < procs - 1; norm++) {
+  for (norm = 0; norm < procs; norm++) {
     if (pthread_join(tids[norm], &index[norm]) != 0) {
       printf("Error : pthread_join failed on joining thread %d\n", i);
     }
