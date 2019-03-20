@@ -252,9 +252,9 @@ void gauss() {
   float multiplier;
   // pthread_barrier_t row_barrier, phase_barrier;
   long partial_list_size;
-  void *res = NULL;
   pthread_t *tids = NULL;
   int i;
+  int *index = calloc(procs, sizeof(int));
 
   /* Initialize thead ids*/
   tids = malloc(sizeof(pthread_t) * procs);
@@ -264,11 +264,10 @@ void gauss() {
   }
   printf("malloc threads\n");
 
-  // if (nt == 1) {
-  //   partial_list_size = nelems;
-  // } else {
-  //   partial_list_size = (nelems / (long)(nt)) + (nelems % (long)(nt));
-  // }
+  for (i = 0; i < procs; i++)
+  {
+    index[i] = i;
+  }
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
@@ -280,9 +279,10 @@ void gauss() {
     /* create threads */
     for (i = 0; i < procs - 1; i++) {
       printf("===========procs[%d]\n",i);
-      int *param = malloc(sizeof(*param));
-      printf("===========param[%d]\n",param);
-      if (pthread_create(&tids[i], NULL, &eliminate, param) != 0) {
+      *param = malloc(sizeof(*param));
+      *param = i;
+      printf("===========param",param);
+      if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
         return -1;
       }
