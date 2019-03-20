@@ -239,6 +239,7 @@ void *eliminate(void *param)
     norm = gnorm;
 
     printf("THREAD RUNNING index: %d.\n",index);
+    printf("%d\n", norm+1+index);
 
     for (row = norm+1+index; row < N; row+=procs) {
       printf("ROW %d",row);
