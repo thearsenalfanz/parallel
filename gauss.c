@@ -216,7 +216,7 @@ void main(int argc, char **argv) {
 
 void *elimate()
 {
-  
+
 }
 
 void gauss() {
@@ -255,6 +255,7 @@ void gauss() {
   pthread_barrier_wait(phase_barrier);
 
   for (norm = 0; norm < N - 1; norm++) {
+    multiplier = B[row][norm] / A[norm][norm];
     for (row = norm + 1; row < N; row++) {
       B[row] -= B[norm] * multiplier;
     }
