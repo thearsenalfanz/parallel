@@ -241,7 +241,7 @@ void *eliminate(void *param)
     printf("THREAD RUNNING index: %d.\n",index);
 
     for (row = norm+1+index; row < N; row+=procs) {
-      
+      printf("THREAD row",row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
         printf("THREAD RUNNING: [%d,%d].\n",row, col);
