@@ -67,8 +67,6 @@ int init(nt,nelems)
 	void *res = NULL;
 	/* ---- */
 
-	printf("Number of elements = %d\nSeed value = %d\n", nelems, seed);
-
 	minimum_value = INT_MAX;
 
 	/* init the mutex */
@@ -143,9 +141,11 @@ int main()
 	/* vars */
 	int i = 0;
 	long l = 0;
-	int seed = 10;
 	long nelems = 100000000;
+	int seed = 10;
 	/* ---- */
+
+	printf("Number of elements = %d\nSeed value = %d\n", nelems, seed);
 
 	/* init lists, list_ptr, partial_list_size */
 	list = malloc(sizeof(int) * nelems);
