@@ -247,7 +247,7 @@ void *eliminate(void *param)
       B[row] -= B[norm] * multiplier;
       // print_inputs();
     }
-    // pthread_barrier_wait(&row_barrier);
+    pthread_barrier_wait(&row_barrier);
 
     pthread_exit(0);
 }
@@ -308,6 +308,8 @@ void gauss() {
       }
   }
 
+  pthread_barrier_wait(&row_barrier);
+
   for (norm = 0; norm < N - 1; norm++) {
     if (pthread_join(tids[norm], &index[norm]) != 0) {
       printf("Error : pthread_join failed on joining thread %d\n", i);
@@ -315,9 +317,7 @@ void gauss() {
     print_inputs();
   }
 
-
-
-  // pthread_barrier_destroy(&row_barrier);
+  pthread_barrier_destroy(&row_barrier);
 
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
@@ -330,6 +330,6 @@ void gauss() {
     }
     X[row] /= A[row][row];
   }
-
+  free(index);
   free(tids);
 }
