@@ -12,6 +12,7 @@ pthread_mutex_t	minimum_value_lock;
 int minimum_value;
 long partial_list_size;
 int err;
+int *list = NULL;
 
 /* ---------------------------------------- MYSECOND */
 static double 
@@ -54,51 +55,7 @@ void *find_min(void *list_ptr)
 	pthread_exit(0);
 }
 
-/* ---------------------------------------- MAIN */
-int main()
-{
-	/* vars */
-	int i = 0;
-	long l = 0;
-	int seed = 10;
-	long nelems = 100000000;
-	int *list = NULL;
-	/* ---- */
-
-	/* init the mutex */
-	pthread_mutex_init(&minimum_value_lock, NULL);
-
-	/* init lists, list_ptr, partial_list_size */
-	list = malloc(sizeof(int) * nelems);
-	if (list == NULL) {
-		printf("Error : could not init the list\n");
-		return -1;
-	}
-	
-	srand(seed);
-	for (l = 0; l < nelems; l++) {
-		list[l] = (long)(rand());
-	}
-
-	err = init(1,nelems);
-	if(err == -1)
-		return -1;
-	err = init(2,nelems);
-	if(err == -1)
-		return -1;
-	err = init(4,nelems);
-	if(err == -1)
-		return -1;
-	err = init(8,nelems);
-	if(err == -1)
-		return -1;
-
-	free(list);
-	list = NULL;
-	return 0;
-
-}
-
+/* ---------------------------------------- INIT */
 int init(nt,nelems)
 {
 	/* vars */
@@ -170,6 +127,50 @@ int init(nt,nelems)
 	free(tids);
 	tids = NULL;
 
+	return 0;
+
+}
+
+/* ---------------------------------------- MAIN */
+int main()
+{
+	/* vars */
+	int i = 0;
+	long l = 0;
+	int seed = 10;
+	long nelems = 100000000;
+	/* ---- */
+
+	/* init the mutex */
+	pthread_mutex_init(&minimum_value_lock, NULL);
+
+	/* init lists, list_ptr, partial_list_size */
+	list = malloc(sizeof(int) * nelems);
+	if (list == NULL) {
+		printf("Error : could not init the list\n");
+		return -1;
+	}
+	
+	srand(seed);
+	for (l = 0; l < nelems; l++) {
+		list[l] = (long)(rand());
+	}
+
+	err = init(1,nelems);
+	if(err == -1)
+		return -1;
+	err = init(2,nelems);
+	if(err == -1)
+		return -1;
+	err = init(4,nelems);
+	if(err == -1)
+		return -1;
+	err = init(8,nelems);
+	if(err == -1)
+		return -1;
+
+	free(list);
+	list = NULL;
 	return 0;
 
 }
