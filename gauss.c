@@ -229,8 +229,9 @@ void main(int argc, char **argv) {
  * defined in the beginning of this code.  X[] is initialized to zeros.
  */
 
-void *elimate(void *param)
+void *eliminate(void *param)
 {
+  printf("THREAD RUNNING.\n");
     pthread_barrier_t row_barrier;
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
     float multiplier;
@@ -276,13 +277,12 @@ void gauss() {
 
     // pthread_barrier_init(&row_barrier,NULL,procs+1);
 
-    rintf("===========procs = %d\n",procs);
-
     /* create threads */
     for (i = 0; i < procs - 1; i++) {
-      printf("===========procs[%d]%\n",i);
+      printf("===========procs[%d]\n",i);
       int *param = malloc(sizeof(*param));
-      if (pthread_create(&tids[i], NULL, &elimate, param) != 0) {
+      printf("===========param[%d]\n",param);
+      if (pthread_create(&tids[i], NULL, &eliminate, param) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
         return -1;
       }
