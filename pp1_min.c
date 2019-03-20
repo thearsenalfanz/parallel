@@ -317,6 +317,7 @@ int main()
 	long l = 0;
 	long nelems = 100000000;
 	int seed = 10;
+	gnuplot_ctrl *h;
 	/* ---- */
 
 	printf("Number of elements = %d\nSeed value = %d\n\n", nelems, seed);
@@ -371,9 +372,6 @@ int main()
 	list = NULL;
 
 	/* plot performance */
-    gnuplot_ctrl *h;
-    int i;
-
     h = gnuplot_init();
     gnuplot_plot_x(h, duration, 4, "FIND MIN") ;
     sleep(2);
