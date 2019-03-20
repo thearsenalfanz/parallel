@@ -290,7 +290,7 @@ void gauss() {
 
     for (t = 0; t < procs; t++) {
     /* create threads */
-      printf("INDEX i = %d\n",index[t] );
+      printf("INDEX %d = %d\n",t,index[t] );
       if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", t);
       }
