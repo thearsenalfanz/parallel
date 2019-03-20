@@ -317,6 +317,7 @@ int main()
 	long l = 0;
 	long nelems = 100000000;
 	int seed = 10;
+	double d[50];
 	gnuplot_ctrl *h;
 	/* ---- */
 
@@ -372,10 +373,17 @@ int main()
 	list = NULL;
 
 	/* plot performance */
-    h = gnuplot_init();
-    gnuplot_plot_x(h, duration, 4, "FIND MIN") ;
-    sleep(2);
-    gnuplot_close(h);
+    // h = gnuplot_init();
+    // gnuplot_plot_x(h, duration, 4, "FIND MIN") ;
+    // sleep(2);
+    // gnuplot_close(h);
+    h = gnuplot_init() ;
+    for (i=0 ; i<4 ; i++) {
+        d[i] = (double)(i*i) ;
+    }
+    gnuplot_plot_x(h, d, 50, "parabola") ;
+    sleep(2) ;
+    gnuplot_close(h) ;
 
 	return 0;
 
