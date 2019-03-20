@@ -246,9 +246,10 @@ void *eliminate(void *param)
       }
       B[row] -= B[norm] * multiplier;
       print_inputs();
-
     }
     // pthread_barrier_wait(&row_barrier);
+
+    pthread_exit(0);
 }
 
 void gauss() {
@@ -299,9 +300,6 @@ void gauss() {
     }
   }
 
-
-
-
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
    */
@@ -313,4 +311,6 @@ void gauss() {
     }
     X[row] /= A[row][row];
   }
+
+  free(tids);
 }
