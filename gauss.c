@@ -48,6 +48,18 @@ unsigned int time_seed() {
   return (unsigned int)(t.tv_usec);
 }
 
+  /* set procs */
+void m_set_procs(int p)
+{
+  procs = p;
+}
+
+/* return number of process */
+int m_get_numprocs()
+{
+  return procs;
+}
+
 /* Set the program parameters from the command-line arguments */
 void parameters(int argc, char **argv) {
   int submit = 0;  /* = 1 if submission parameters should be used */
@@ -78,18 +90,6 @@ void parameters(int argc, char **argv) {
   exit(0);
       }
     }
-  }
-
-  /* set procs */
-  void m_set_procs(int p)
-  {
-    procs = p;
-  }
-
-  /* return number of process */
-  int m_get_numprocs()
-  {
-    return procs;
   }
 
   /* Interpret command-line args */
@@ -179,8 +179,6 @@ void main(int argc, char **argv) {
 
   /* Print input matrices */
   print_inputs();
-
-  printf("%d\n", procs);
 
   /* Start Clock */
   printf("\nStarting clock.\n");
