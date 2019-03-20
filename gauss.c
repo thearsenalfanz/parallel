@@ -188,21 +188,21 @@ void main(int argc, char **argv) {
   printf("\nElapsed time = %g ms.\n",
    (float)(usecstop - usecstart)/(float)1000);
   /*printf("               (%g ms according to times())\n",
-   *       (etstop2 - etstart2) / (float)CLK_TCK * 1000);
+   *       (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
    */
   printf("(CPU times are accurate to the nearest %g ms)\n",
-   1.0/(float)CLK_TCK * 1000.0);
+   1.0/(float)CLOCKS_PER_SEC * 1000.0);
   printf("My total CPU time for parent = %g ms.\n",
    (float)( (cputstop.tms_utime + cputstop.tms_stime) -
       (cputstart.tms_utime + cputstart.tms_stime) ) /
-   (float)CLK_TCK * 1000);
+   (float)CLOCKS_PER_SEC * 1000);
   printf("My system CPU time for parent = %g ms.\n",
    (float)(cputstop.tms_stime - cputstart.tms_stime) /
-   (float)CLK_TCK * 1000);
+   (float)CLOCKS_PER_SEC * 1000);
   printf("My total CPU time for child processes = %g ms.\n",
    (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
       (cputstart.tms_cutime + cputstart.tms_cstime) ) /
-   (float)CLK_TCK * 1000);
+   (float)CLOCKS_PER_SEC * 1000);
       /* Contrary to the man pages, this appears not to include the parent */
   printf("--------------------------------------------\n");
 
@@ -239,6 +239,7 @@ void gauss() {
   long partial_list_size;
   void *res = NULL;
   pthread_t *tids = NULL;
+  int i;
 
   tids = malloc(sizeof(pthread_t) * procs);
   if (tids == NULL) {
