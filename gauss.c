@@ -247,7 +247,7 @@ void *eliminate(void *param)
       B[row] -= B[norm] * multiplier;
       // print_inputs();
     }
-    pthread_barrier_wait(&row_barrier);
+    // pthread_barrier_wait(&row_barrier);
 
     pthread_exit(0);
 }
