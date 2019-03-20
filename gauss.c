@@ -238,9 +238,9 @@ void *eliminate(void *param)
     int i = *((int *) param);
     norm = gnorm;
 
-    printf("===========THREAD %d.\n",i);
+    // printf("===========THREAD %d.\n",i);
     for (row = norm+1+i; row < N; row+=procs) {
-      printf("[%d] ROW %d\n",i, row);
+      // printf("[%d] ROW %d\n",i, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
         printf("[%d] CELL [%d,%d].\n",i, row, col);
@@ -251,8 +251,6 @@ void *eliminate(void *param)
     }
 
     pthread_barrier_wait(&row_barrier);
-
-    printf("===========THREAD %d.\n",i);
 
     pthread_exit(0);
 }
@@ -273,22 +271,16 @@ void gauss() {
     return -1;
   }
 
-  for (i = 0; i < procs; i++)
-  {
-    index[i] = i;
-    printf("index[%d]\n",i );
-  }
-
   pthread_barrier_init(&row_barrier,NULL,procs+1);
 
   for (norm = 0; norm < N-1; norm++) {
     gnorm = norm;
-    printf("================== ROUND: %d\n",gnorm );
+    // printf("================== ROUND: %d\n",gnorm );
 
     for (t = 0; t < procs; t++) {
     /* create threads */
       index[t] = t;
-      printf("INDEX %d = %d\n",t,index[t] );
+      // printf("INDEX %d = %d\n",t,index[t] );
       if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", t);
       }
@@ -300,7 +292,7 @@ void gauss() {
       if (pthread_join(tids[t], &index[t]) != 0) {
         printf("Error : pthread_join failed on joining thread %d\n", t);
       }
-      print_inputs();
+      // print_inputs();
     }
 
   }  
