@@ -240,7 +240,7 @@ void *eliminate(void *param)
 
     printf("THREAD RUNNING index: %d.\n",index);
     printf("norm: %d\n", norm);
-    printf("row: %d\n", norm+1+index);
+    printf("norm+index: %d\n", norm+index);
     printf("N: %d\n, procs = %d", N, procs);
 
     for (row = norm+1+index; row < N; row+=procs) {
