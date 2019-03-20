@@ -249,7 +249,7 @@ void *eliminate(void *param)
       B[row] -= B[norm] * multiplier;
       // print_inputs();
     }
-    // pthread_barrier_wait(&row_barrier);
+    pthread_barrier_wait(&row_barrier);
     // free(index);
     pthread_exit(0);
 }
@@ -288,7 +288,7 @@ void gauss() {
     gnorm = norm;
     printf("================== ROUND: %d\n",gnorm );
 
-    for (t = 0; i < procs; t++) {
+    for (t = 0; t < procs; t++) {
     /* create threads */
       printf("INDEX i = %d\n",index[t] );
       if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
@@ -296,7 +296,7 @@ void gauss() {
       }
     }
 
-    // pthread_barrier_wait(&row_barrier);
+    pthread_barrier_wait(&row_barrier);
 
     for (t = 0; t < procs; t++) {
       if (pthread_join(tids[t], &index[t]) != 0) {
