@@ -274,6 +274,8 @@ void gauss() {
     index[i] = i;
   }
 
+  pthread_barrier_init(&row_barrier,NULL,procs+1);
+
   /* Gaussian elimination */
   // for (norm = 0; norm < N - 1; norm++) {
 
@@ -300,7 +302,7 @@ void gauss() {
   //   print_inputs();
   // }
 
-  for (norm = 0; norm < N - 1; norm++) {
+  for (norm = 0; norm < procs; norm++) {
     i = norm;
     /* create threads */
     if (pthread_create(&tids[norm], NULL, &eliminate, &index[norm]) != 0) {
@@ -310,7 +312,7 @@ void gauss() {
 
   pthread_barrier_wait(&row_barrier);
 
-  for (norm = 0; norm < N - 1; norm++) {
+  for (norm = 0; norm < procs; norm++) {
     if (pthread_join(tids[norm], &index[norm]) != 0) {
       printf("Error : pthread_join failed on joining thread %d\n", i);
     }
