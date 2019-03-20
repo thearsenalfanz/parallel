@@ -271,10 +271,10 @@ void gauss() {
   }
   printf("malloc threads\n");
 
-  for (i = 0; i < procs; i++)
+  for (t = 0; t < procs; t++)
   {
-    index[i] = i;
-    printf("index[%d]\n",i );
+    index[t] = t;
+    printf("index[%d]\n",t );
   }
 
   printf("Initialize barrier\n");
@@ -288,19 +288,19 @@ void gauss() {
     gnorm = norm;
     printf("================== ROUND: %d\n",gnorm );
 
-    for (i = 0; i < procs; i++) {
+    for (t = 0; i < procs; t++) {
     /* create threads */
-      printf("INDEX i = %d\n",index[i] );
-      if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
-        printf("Error : pthread_create failed on spawning thread %d\n", i);
+      printf("INDEX i = %d\n",index[t] );
+      if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
+        printf("Error : pthread_create failed on spawning thread %d\n", t);
       }
     }
 
     pthread_barrier_wait(&row_barrier);
 
-    for (i = 0; i < procs; i++) {
-      if (pthread_join(tids[i], &index[i]) != 0) {
-        printf("Error : pthread_join failed on joining thread %d\n", i);
+    for (t = 0; t < procs; t++) {
+      if (pthread_join(tids[t], &index[t]) != 0) {
+        printf("Error : pthread_join failed on joining thread %d\n", t);
       }
       print_inputs();
     }
