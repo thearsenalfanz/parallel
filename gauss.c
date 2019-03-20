@@ -180,6 +180,8 @@ void main(int argc, char **argv) {
   /* Print input matrices */
   print_inputs();
 
+  printf("%d\n", procs);
+
   /* Start Clock */
   printf("\nStarting clock.\n");
   gettimeofday(&etstart, &tzdummy);
