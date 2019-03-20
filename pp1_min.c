@@ -69,6 +69,10 @@ int init(nt,nelems)
 
 	minimum_value = INT_MAX;
 
+	/* init the mutex */
+	pthread_mutex_init(&minimum_value_lock, NULL);
+	
+
 	/* sanity check */
 	if (nt < 1) {
 		printf("error : not enough threads\n");
@@ -140,9 +144,6 @@ int main()
 	int seed = 10;
 	long nelems = 100000000;
 	/* ---- */
-
-	/* init the mutex */
-	pthread_mutex_init(&minimum_value_lock, NULL);
 
 	/* init lists, list_ptr, partial_list_size */
 	list = malloc(sizeof(int) * nelems);
