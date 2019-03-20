@@ -275,21 +275,41 @@ void gauss() {
   }
 
   /* Gaussian elimination */
+  // for (norm = 0; norm < N - 1; norm++) {
+
+  //   printf("===========%d\n",norm);
+
+  //   // pthread_barrier_init(&row_barrier,NULL,procs+1);
+
+  //   /* create threads */
+  //   for (i = 0; i < procs; i++) {
+  //     printf("===========procs[%d]\n",i);
+  //     if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
+  //       printf("Error : pthread_create failed on spawning thread %d\n", i);
+  //       return -1;
+  //     }
+  //   }
+  //   // pthread_barrier_wait(&row_barrier);
+  //   /* join threads */
+  //   for (i = 0; i < procs; i++) {
+  //     if (pthread_join(tids[i], &index[i]) != 0) {
+  //       printf("Error : pthread_join failed on joining thread %d\n", i);
+  //       return -1;
+  //     }
+  //   }
+  //   print_inputs();
+  // }
+
   for (norm = 0; norm < N - 1; norm++) {
 
-    printf("===========%d\n",norm);
-
-    // pthread_barrier_init(&row_barrier,NULL,procs+1);
-
     /* create threads */
-    for (i = 0; i < procs; i++) {
-      printf("===========procs[%d]\n",i);
-      if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
+    if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
         return -1;
       }
-    }
-    // pthread_barrier_wait(&row_barrier);
+  }
+
+  for (norm = 0; norm < N - 1; norm++) {
     /* join threads */
     for (i = 0; i < procs; i++) {
       if (pthread_join(tids[i], &index[i]) != 0) {
@@ -299,6 +319,8 @@ void gauss() {
     }
     print_inputs();
   }
+
+
 
   // pthread_barrier_destroy(&row_barrier);
 
