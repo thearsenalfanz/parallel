@@ -260,7 +260,6 @@ void gauss() {
   long partial_list_size;
   pthread_t *tids = NULL;
   int i;
-  int d;
   int *index = calloc(procs, sizeof(int));
 
   /* Initialize thead ids*/
@@ -271,7 +270,6 @@ void gauss() {
   }
   printf("malloc threads\n");
 
-  d = N/procs;
   index[0] = 0;
   for (i = 1; i < procs; i++)
   {
