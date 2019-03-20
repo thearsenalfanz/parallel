@@ -273,11 +273,12 @@ void gauss() {
   for (norm = 0; norm < N - 1; norm++) {
 
     printf("===========%d\n",norm);
+    printf("%d\n", procs);
 
     // pthread_barrier_init(&row_barrier,NULL,procs+1);
 
     /* create threads */
-    for (i = 0; i < procs - 1; i++) {
+    for (i = 0; i < procs; i++) {
       printf("===========procs[%d]\n",i);
       if (pthread_create(&tids[i], NULL, &eliminate, &index[i]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", i);
