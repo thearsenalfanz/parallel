@@ -272,24 +272,18 @@ void gauss() {
     printf("Error : could not init the tids\n");
     return -1;
   }
-  printf("malloc threads\n");
 
-  printf("Initialize barrier\n");
+  for (i = 0; i < procs; i++)
+  {
+    index[i] = i;
+    printf("index[%d]\n",i );
+  }
 
   pthread_barrier_init(&row_barrier,NULL,procs+1);
-
-  printf("start\n");
-
 
   for (norm = 0; norm < N-1; norm++) {
     gnorm = norm;
     printf("================== ROUND: %d\n",gnorm );
-
-    for (i = 0; i < procs; i++)
-    {
-      index[i] = i;
-      printf("index[%d]\n",i );
-    }
 
     for (t = 0; t < procs; t++) {
     /* create threads */
