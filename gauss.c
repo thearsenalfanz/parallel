@@ -250,13 +250,10 @@ void *eliminate(void *param)
       // print_inputs();
     }
 
-    printf("after done INDEX 0 = %d\n",index[0] );
-     printf("INDEX 1 = %d\n",index[1] );
-
     pthread_barrier_wait(&row_barrier);
 
-        printf("after wait INDEX 0 = %d\n",index[0] );
-     printf("INDEX 1 = %d\n",index[1] );
+    printf("===========THREAD %d.\n",index);
+
     // free(index);
     pthread_exit(0);
 }
