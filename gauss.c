@@ -332,9 +332,6 @@ void gauss() {
     }
     X[row] /= A[row][row];
   }
-  free(A);
-  free(B);
-  free(X);
   free(index);
   free(tids);
 }
