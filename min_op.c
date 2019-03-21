@@ -312,6 +312,7 @@ int main(int argc, char **argv)
 {
 	/* vars */
 	int i = 0;
+	int ret = 0;
 	int nt = 1;
 	long l = 0;
 	long nelems = 100000000;
