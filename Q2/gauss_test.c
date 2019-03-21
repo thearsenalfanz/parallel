@@ -29,7 +29,6 @@
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
 int gnorm;
-int seed;
 
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
@@ -84,14 +83,15 @@ void parameters(int argc, char **argv) {
     }
     else {
       if (argc == 4) {
-        seed = atoi(argv[3]);
-        srand(seed);
-        // printf("Random seed = %i\n", seed);
+  seed = atoi(argv[3]);
+  srand(seed);
+  printf("Random seed = %i\n", seed);
       }
       else {
-        // printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n", argv[0]);
-        // printf("       %s submit\n", argv[0]);
-        exit(0);
+  printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
+         argv[0]);
+  printf("       %s submit\n", argv[0]);
+  exit(0);
       }
     }
   }
@@ -116,8 +116,8 @@ void parameters(int argc, char **argv) {
   }
 
   /* Print parameters */
-  printf("\nMatrix dimension N = %i.\n", N);
-  printf("Number of processors = %i.\n", procs);
+  // printf("\nMatrix dimension N = %i.\n", N);
+  // printf("Number of processors = %i.\n", procs);
 
   /* Set number of processors */
   m_set_procs(procs);
@@ -127,8 +127,6 @@ void parameters(int argc, char **argv) {
 void initialize_inputs() {
   int row, col;
 
-  srand(time_seed());
-  srand(seed);
   // printf("\nInitializing...\n");
   for (col = 0; col < N; col++) {
     for (row = 0; row < N; row++) {
@@ -169,12 +167,7 @@ void print_X() {
   }
 }
 
-void init (int m, int t, int s)
-{
-  N = m;
-  procs = t;
-  seed = s;
-
+void main(int argc, char **argv) {
   /* Timing variables */
   struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
   struct timezone tzdummy;
@@ -183,7 +176,7 @@ void init (int m, int t, int s)
   struct tms cputstart, cputstop;  /* CPU times for my processes */
 
   /* Process program parameters */
-  // parameters(argc, argv);
+  parameters(argc, argv);
 
   /* Initialize A and B */
   initialize_inputs();
@@ -210,10 +203,9 @@ void init (int m, int t, int s)
   // print_X();
 
   /* Display timing results */
-  // printf("\nElapsed time = %g ms.\n", (float)(usecstop - usecstart)/(float)1000);
-  printf("%d,%d,%g\n",N,procs, (float)(usecstop - usecstart)/(float)1000);
+  printf(fp,"%d,%d,%g\n",N, procs, (float)(usecstop - usecstart)/(float)1000));
   /*printf("               (%g ms according to times())\n", (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
-
+   
   printf("(CPU times are accurate to the nearest %g ms)\n",
    1.0/(float)CLOCKS_PER_SEC * 1000.0);
   printf("My total CPU time for parent = %g ms.\n",
@@ -227,30 +219,10 @@ void init (int m, int t, int s)
    (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
       (cputstart.tms_cutime + cputstart.tms_cstime) ) /
    (float)CLOCKS_PER_SEC * 1000);
-  printf("--------------------------------------------\n");*/
+  printf("--------------------------------------------\n");
+  */
 
 }
-
-
-void main(int argc, char **argv) {
-  int i,j;
-  int thread[4] = {1,2,4,8};
-  int s = 0;
-
-  // fp = fopen("result.csv", "w+");
-  for(i=100; i< 2000; i+=100)
-  {
-    for(j = 0; j < 4; j++)
-    {
-
-      init(i, thread[j],s);
-    }
-  }
-  // fclose(fp);
-
-
-}
-
 
 /* thread function*/
 void *eliminate(void *param)
