@@ -26,8 +26,7 @@
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
-int gnorm, grow;
-float multiplier;
+int gnorm;
 
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
@@ -234,17 +233,24 @@ void main(int argc, char **argv) {
 
 void *eliminate(void *param)
 {
-    int norm, col, r;  /* Normalization row, and zeroing element row and col */
-    float m;
+    int norm, row, col;  /* Normalization row, and zeroing element row and col */
+    float multiplier;
     int i = *((int *) param);
     norm = gnorm;
-    r = grow;
-    m = multiplier;
 
-      for (col = norm+1+i; col < N; col+=procs) {
-        A[r][col] -= A[norm][col] * multiplier; /* Elimination step */
-        printf("put A[%d][%d]\n",r,col);
+    printf("===========THREAD %d.\n",i);
+    for (row = norm+1+i; row < N; row+=procs) {
+      // printf("[%d] ROW %d\n",i, row);
+      multiplier = A[row][norm] / A[norm][norm]; /* Division step */
+      for (col = norm; col < N; col++) {
+        printf("[%d] CELL [%d,%d].\n",i, row, col);
+        A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
+      B[row] -= B[norm] * multiplier;
+      // print_inputs();
+    }
+
+    pthread_barrier_wait(&row_barrier);
 
     pthread_exit(0);
 }
@@ -265,34 +271,28 @@ void gauss() {
     return -1;
   }
 
+  pthread_barrier_init(&row_barrier,NULL,procs+1);
+
   for (norm = 0; norm < N-1; norm++) {
-    for (row = norm + 1; row < N; row++) {
-      // printf("[%d] ROW %d\n",i, row);
-      multiplier = A[row][norm] / A[norm][norm]; /* Division step */
-      printf("use A[%d][%d] A[%d][%d]\n",row,norm,norm,norm);
-      gnorm = norm;
-      grow = row;
-      // printf("================== ROUND: %d\n",gnorm );
-      for (t = 0; t < procs; t++) {
-      /* create threads */
-        index[t] = t;
-        // printf("INDEX %d = %d\n",t,index[t] );
-        if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
-          printf("Error : pthread_create failed on spawning thread %d\n", t);
-        }
+    gnorm = norm;
+    // printf("================== ROUND: %d\n",gnorm );
+
+    for (t = 0; t < procs; t++) {
+    /* create threads */
+      index[t] = t;
+      // printf("INDEX %d = %d\n",t,index[t] );
+      if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
+        printf("Error : pthread_create failed on spawning thread %d\n", t);
       }
+    }
 
-      for (t = 0; t < procs; t++) {
-        if (pthread_join(tids[t], &index[t]) != 0) {
-          printf("Error : pthread_join failed on joining thread %d\n", t);
-        }
-        // print_inputs();
+    pthread_barrier_wait(&row_barrier);
+
+    for (t = 0; t < procs; t++) {
+      if (pthread_join(tids[t], &index[t]) != 0) {
+        printf("Error : pthread_join failed on joining thread %d\n", t);
       }
-
-      B[row] -= B[norm] * multiplier;
-      printf("put B[%d].\n",row);
-
-      print_inputs();
+      // print_inputs();
     }
 
   }  
