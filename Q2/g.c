@@ -29,6 +29,8 @@
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
 int gnorm;
+int seed;
+FILE *fp;
 
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
@@ -67,8 +69,8 @@ int m_get_numprocs()
 /* Initialize A and B (and X to 0.0s) */
 void initialize_inputs() {
   int row, col;
-
-  printf("\nInitializing...\n");
+  srand(seed);
+  // printf("\nInitializing...\n");
   for (col = 0; col < N; col++) {
     for (row = 0; row < N; row++) {
       A[row][col] = (float)rand() / 32768.0;
@@ -110,9 +112,17 @@ void print_X() {
 
 void init(int t)
 {
+  /* Timing variables */
+  struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
+  struct timezone tzdummy;
+  clock_t etstart2, etstop2;  /* Elapsed times using times() */
+  unsigned long long usecstart, usecstop;
+  struct tms cputstart, cputstop;  /* CPU times for my processes */
+  double ms;
+
   procs = t;
   /* Start Clock */
-  printf("\nStarting clock.\n");
+  // printf("\nStarting clock.\n");
   gettimeofday(&etstart, &tzdummy);
   etstart2 = times(&cputstart);
 
@@ -122,7 +132,7 @@ void init(int t)
   /* Stop Clock */
   gettimeofday(&etstop, &tzdummy);
   etstop2 = times(&cputstop);
-  printf("Stopped clock.\n");
+  // printf("Stopped clock.\n");
   usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
   usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
 
@@ -130,14 +140,17 @@ void init(int t)
   print_X();
 
   /* Display timing results */
-  printf("\nElapsed time = %g ms.\n", (float)(usecstop - usecstart)/(float)1000);
+  ms = (float)(usecstop - usecstart)/(float)1000;
+  printf("[N=%d] [%d thread] Elapsed time %g ms.\n",N, procs, ms);
+  fprintf(fp,"%d,%d,%g\n",N, procs, ms);
+
 }
 
 void testcase(int m, int s){
 
-  int threads[4] = [1,2,4,8];
+  int thread[4] = {1,2,4,8};
   int i;
-  N = n;
+  N = m;
   seed = s;
 
   /* Initialize A and B */
@@ -148,29 +161,23 @@ void testcase(int m, int s){
 
   for(i = 0; i < 4; i++)
   {
-     printf("-------------------Thread = %d\n", thread[i]);
-     init(thread[i]);
+    init(thread[i]);
   }
 
 }
 
 void main(int argc, char **argv) {
-  /* Timing variables */
-  struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
-  struct timezone tzdummy;
-  clock_t etstart2, etstop2;  /* Elapsed times using times() */
-  unsigned long long usecstart, usecstop;
-  struct tms cputstart, cputstop;  /* CPU times for my processes */
 
-  testcase(100,0);
-  testcase(300,0);
-  testcase(500,0);
-  testcase(700,0);
-  testcase(800,0);
-  testcase(1000,0);
-  testcase(1200,0);
-  testcase(1400,0);
-  testcase(1600,0);
+  int i;
+  seed = 0;
+
+  fp = fopen("result.csv", "w+");
+  for(i=100; i< 2000; i+=100)
+  {
+      printf("N = %d\n", i);
+      testcase(i,seed); 
+  }
+  fclose(fp);
 
 }
 
@@ -204,6 +211,8 @@ void gauss() {
   pthread_t *tids = NULL; /* thread id*/
   int i,t;
   int *index = calloc(procs, sizeof(int)); /* thread index for row assignment for each thread */
+
+  printf("======================[N=%d] [%d thread]\n",N, procs);
 
   /* Initialize thread ids*/
   tids = malloc(sizeof(pthread_t) * procs);
