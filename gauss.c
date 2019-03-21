@@ -26,7 +26,7 @@
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
-int gnorm;
+int gnorm, grow;
 float multiplier;
 
 /* Matrices and vectors */
@@ -234,17 +234,17 @@ void main(int argc, char **argv) {
 
 void *eliminate(void *param)
 {
-    int norm, row, col, m;  /* Normalization row, and zeroing element row and col */
+    int norm, col, r;  /* Normalization row, and zeroing element row and col */
     float m;
     int i = *((int *) param);
     norm = gnorm;
+    r = grow;
+    m = multiplier;
 
       for (col = norm+1+i; col < N; col+=procs) {
-        printf("[%d] CELL [%d,%d].\n",i, row, col);
-        A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
+        printf("[%d] CELL [%d,%d].\n",i, norm, col);
+        A[r][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
-
-    pthread_barrier_wait(&row_barrier);
 
     pthread_exit(0);
 }
@@ -265,12 +265,13 @@ void gauss() {
     return -1;
   }
 
-  pthread_barrier_init(&row_barrier,NULL,procs+1);
-
   for (norm = 0; norm < N-1; norm++) {
     for (row = norm + 1; row < N; row++) {
       // printf("[%d] ROW %d\n",i, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
+      printf("A %d, A %d\n", A[row][norm], A[norm][norm]);
+
+      printf("************M = %f\n",multiplier );
       gnorm = norm;
       // printf("================== ROUND: %d\n",gnorm );
       for (t = 0; t < procs; t++) {
@@ -282,8 +283,6 @@ void gauss() {
         }
       }
 
-      pthread_barrier_wait(&row_barrier);
-
       for (t = 0; t < procs; t++) {
         if (pthread_join(tids[t], &index[t]) != 0) {
           printf("Error : pthread_join failed on joining thread %d\n", t);
@@ -292,6 +291,8 @@ void gauss() {
       }
 
       B[row] -= B[norm] * multiplier;
+
+      print_inputs();
     }
 
   }  
