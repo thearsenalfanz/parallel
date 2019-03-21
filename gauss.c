@@ -242,8 +242,8 @@ void *eliminate(void *param)
     m = multiplier;
 
       for (col = norm+1+i; col < N; col+=procs) {
-        printf("[%d] CELL [%d,%d].\n",i, norm, col);
         A[r][col] -= A[norm][col] * multiplier; /* Elimination step */
+        printf("put A[%d][%d]\n",r,col);
       }
 
     pthread_exit(0);
@@ -269,10 +269,9 @@ void gauss() {
     for (row = norm + 1; row < N; row++) {
       // printf("[%d] ROW %d\n",i, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
-      printf("A %d, A %d\n", A[row][norm], A[norm][norm]);
-
-      printf("************M = %f\n",multiplier );
+      printf("use A[%d][%d] A[%d][%d]\n",row,norm,norm,norm);
       gnorm = norm;
+      grow = row;
       // printf("================== ROUND: %d\n",gnorm );
       for (t = 0; t < procs; t++) {
       /* create threads */
@@ -291,6 +290,7 @@ void gauss() {
       }
 
       B[row] -= B[norm] * multiplier;
+      printf("put B[%d].\n",row);
 
       print_inputs();
     }
