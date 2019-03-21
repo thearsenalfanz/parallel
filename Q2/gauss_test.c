@@ -237,15 +237,16 @@ void main(int argc, char **argv) {
   int thread[4] = {1,2,4,8};
   int s = 0;
 
-  fp = fopen("result.csv", "w+");
+  // fp = fopen("result.csv", "w+");
   for(i=100; i< 2000; i+=100)
   {
     for(j = 0; j < 4; j++)
     {
-      init(i,j,s);
+
+      init(i, thread[j],s);
     }
   }
-  fclose(fp);
+  // fclose(fp);
 
 
 }
