@@ -238,7 +238,7 @@ void *eliminate(void *param)
     int i = *((int *) param);
     norm = gnorm;
 
-    // printf("===========THREAD %d.\n",i);
+    printf("===========THREAD %d.\n",i);
     for (row = norm+1+i; row < N; row+=procs) {
       // printf("[%d] ROW %d\n",i, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
