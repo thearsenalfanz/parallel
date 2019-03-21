@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 void *eliminate(void *param)
 {
@@ -7,14 +8,63 @@ void *eliminate(void *param)
     printf("Print i = %d\n", i);
 }
 
-void test()
+void test(int N,int procs)
 {
 	int i=0;
-	int N = 4;
-	int p = N-N/2;
-	for (i = 0; i < p; i++)
+	int p = 1+((N-1)/procs); /* roundup(N/procs) */
+	int x = N-1;
+	int index[procs][p];
+	int counter[procs];
+	int k,j;
+	int z;
+
+	printf("**********p = %d\n",p);
+
+	for ( i = 0; i < procs; i++ ) {
+		counter[i] = 0;
+		for(j=0; j<p; j++)
+			index[i][j] = -1;
+	}
+
+	for ( i = 0; i < procs; i++ ) {
+		printf("[thread: %d] ",i);
+		for ( j = 0; j < p; j++ ) {
+			printf("%d ",index[i][j]);
+		}
+		printf("\n");
+	}
+	for (i = 0; i < x; i++)
 	{
-		print("%d %d\n",i,N-1);
+		z = i % procs;
+		printf("%d mod %d = %d\n",i,procs, i % procs);
+		printf("i=%d , x= %d\n",i,x);
+		if( i != x)
+		{
+			printf("%d %d\n",i,x);
+			index[z][counter[z]] = i;
+			printf("z=%d, count =%d,value=%d\n",z,counter[z],index[z][counter[z]]);
+			index[z][counter[z]+1] = x;
+			printf("z=%d, count =%d,value=%d\n",z,counter[z]+1,index[z][counter[z]+1]);
+			counter[z] = counter[z]+2;
+		}
+		else
+		{
+			printf("%d\n",i);
+			index[z][counter[z]] = i;
+			printf("z=%d, count =%d,value=%d\n",z,counter[z],index[z][counter[z]]);
+			counter[z]++;
+		}
+		x--;
+	}
+
+	printf("\n\n***procs =%d\n",procs );
+
+	for ( i = 0; i < procs; i++ ) {
+		printf("[thread: %d] ",i);
+		for ( j = 0; j < p; j++ ) {
+			printf("%d ",index[i][j]);
+		}
+		printf("\n");
 	}
 }
 
@@ -38,7 +88,7 @@ int main(){
 	// 		eliminate(&index[t]);
 	// 	}
 	// }
-	test();
+	test(10,2);
 
 
 }
