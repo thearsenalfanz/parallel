@@ -1,6 +1,6 @@
 CC = gcc
 LIB = -lpthread
-EXE0 = pp1_min
+EXE0 = pp1_min_op
 
 $(EXE0): $(EXE0).exe
 	./$<	
