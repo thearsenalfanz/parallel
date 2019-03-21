@@ -17,6 +17,8 @@
 #include <sys/time.h>
 #include <limits.h>
 #include <time.h>
+#include <pthread.h>
+ #include <string.h>
 // #include <ulocks.h>
 // #include <task.h>
 
@@ -76,7 +78,7 @@ void parameters(int argc, char **argv) {
       submit = 1;
       N = 4;
       procs = 2;
-      printf("\nSubmission run for \"%s\".\n", cuserid(uid));
+      // printf("\nSubmission run for \"%s\".\n", cuserid(uid));
       srand(randm());
     }
     else {
@@ -249,7 +251,7 @@ void *eliminate(void *param)
 
 
 void gauss() {
-  int norm;  /* Normalization row, and zeroing element row and col */
+  int norm, row, col;  /* Normalization row, and zeroing element row and col */
   pthread_t *tids = NULL; /* thread id*/
   int i,t;
   int *index = calloc(procs, sizeof(int)); /* thread index for row assignment for each thread */
