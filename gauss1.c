@@ -27,7 +27,6 @@
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
 int gnorm;
-float multiplier;
 
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
@@ -234,15 +233,22 @@ void main(int argc, char **argv) {
 
 void *eliminate(void *param)
 {
-    int norm, row, col, m;  /* Normalization row, and zeroing element row and col */
-    float m;
+    int norm, row, col;  /* Normalization row, and zeroing element row and col */
+    float multiplier;
     int i = *((int *) param);
     norm = gnorm;
 
-      for (col = norm+1+i; col < N; col+=procs) {
+    printf("===========THREAD %d.\n",i);
+    for (row = norm+1+i; row < N; row+=procs) {
+      // printf("[%d] ROW %d\n",i, row);
+      multiplier = A[row][norm] / A[norm][norm]; /* Division step */
+      for (col = norm; col < N; col++) {
         printf("[%d] CELL [%d,%d].\n",i, row, col);
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
+      B[row] -= B[norm] * multiplier;
+      // print_inputs();
+    }
 
     pthread_barrier_wait(&row_barrier);
 
@@ -268,30 +274,25 @@ void gauss() {
   pthread_barrier_init(&row_barrier,NULL,procs+1);
 
   for (norm = 0; norm < N-1; norm++) {
-    for (row = norm + 1; row < N; row++) {
-      // printf("[%d] ROW %d\n",i, row);
-      multiplier = A[row][norm] / A[norm][norm]; /* Division step */
-      gnorm = norm;
-      // printf("================== ROUND: %d\n",gnorm );
-      for (t = 0; t < procs; t++) {
-      /* create threads */
-        index[t] = t;
-        // printf("INDEX %d = %d\n",t,index[t] );
-        if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
-          printf("Error : pthread_create failed on spawning thread %d\n", t);
-        }
+    gnorm = norm;
+    // printf("================== ROUND: %d\n",gnorm );
+
+    for (t = 0; t < procs; t++) {
+    /* create threads */
+      index[t] = t;
+      // printf("INDEX %d = %d\n",t,index[t] );
+      if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
+        printf("Error : pthread_create failed on spawning thread %d\n", t);
       }
+    }
 
-      pthread_barrier_wait(&row_barrier);
+    pthread_barrier_wait(&row_barrier);
 
-      for (t = 0; t < procs; t++) {
-        if (pthread_join(tids[t], &index[t]) != 0) {
-          printf("Error : pthread_join failed on joining thread %d\n", t);
-        }
-        // print_inputs();
+    for (t = 0; t < procs; t++) {
+      if (pthread_join(tids[t], &index[t]) != 0) {
+        printf("Error : pthread_join failed on joining thread %d\n", t);
       }
-
-      B[row] -= B[norm] * multiplier;
+      // print_inputs();
     }
 
   }  
