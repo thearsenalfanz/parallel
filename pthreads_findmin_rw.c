@@ -17,6 +17,16 @@ pthread_mutex_t	minimum_value_lock;
 int minimum_value;
 long partial_list_size;
 
+/* ---------------------------------------- STRUCT  */
+typedef struct {
+	int readers;
+	int writer;
+	pthread_cond_t readers_proceed;
+	pthread_cond_t writer_proceed;
+	int pending_writers;
+	pthread_mutex_t read_write_lock;
+} mylib_rwlock_t;
+
 /* ---------------------------------------- MYSECOND */
 static double 
 mysecond()
