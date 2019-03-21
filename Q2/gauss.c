@@ -1,12 +1,5 @@
-/* This file is only for reference. It cannot be compiled successfully, 
- * because m_set_procs(), m_get_numprocs() is not supported. Please 
- * write your own parallel version (Pthread, OpenMP, or MPI verion). For 
- * instance, you should use pthread_create() and pthread_join() to 
- * write a Pthread version, and use MPI initilization and communication
- * functions to write a MPI version.
- */
-
-/* Demostration code - Gaussian elimination without pivoting.
+/* 
+Parallel implementation of Gaussian Elimination
  */
 
 #include <stdio.h>
@@ -19,8 +12,6 @@
 #include <time.h>
 #include <pthread.h>
  #include <string.h>
-// #include <ulocks.h>
-// #include <task.h>
 
 /* -------------------------------- Gloobal variables */
 /* Program Parameters */
@@ -28,7 +19,7 @@
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
-int gnorm;
+int gnorm;  /* Normalization row */
 
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
@@ -41,7 +32,6 @@ pthread_barrier_t row_barrier, phase_barrier;
 /* --------------------------------- Prototype */
 void gauss();
 
-
 /* --------------------------------- Functions */
 /* returns a seed for srand based on the time */
 unsigned int time_seed() {
@@ -52,7 +42,7 @@ unsigned int time_seed() {
   return (unsigned int)(t.tv_usec);
 }
 
-  /* set procs */
+/* set procs */
 void m_set_procs(int p)
 {
   procs = p;
@@ -156,6 +146,7 @@ void print_inputs() {
   }
 }
 
+/* print solution vector */
 void print_X() {
   int row;
 
@@ -203,11 +194,9 @@ void main(int argc, char **argv) {
   print_X();
 
   /* Display timing results */
-  printf("\nElapsed time = %g ms.\n",
-   (float)(usecstop - usecstart)/(float)1000);
-  /*printf("               (%g ms according to times())\n",
-   *       (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
-   */
+  printf("\nElapsed time = %g ms.\n", (float)(usecstop - usecstart)/(float)1000);
+
+  /*printf("               (%g ms according to times())\n", (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);*/
   printf("(CPU times are accurate to the nearest %g ms)\n",
    1.0/(float)CLOCKS_PER_SEC * 1000.0);
   printf("My total CPU time for parent = %g ms.\n",
@@ -235,10 +224,10 @@ void *eliminate(void *param)
 
     /* thread running for assigned rows */
     for (row = norm+1+i; row < N; row+=procs) {
-      // printf("[%d] ROW %d\n",i, row);
+      // printf("[thread %d] ROW %d\n",i, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
-        // printf("[%d] CELL [%d,%d].\n",i, row, col);
+        // printf("[thread %d] CELL [%d,%d].\n",i, row, col);
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
       B[row] -= B[norm] * multiplier;
@@ -272,7 +261,6 @@ void gauss() {
     /* create threads */
     for (t = 0; t < procs; t++) {
       index[t] = t;
-      // printf("INDEX %d = %d\n",t,index[t] );
       if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
         printf("Error : pthread_create failed on spawning thread %d\n", t);
       }

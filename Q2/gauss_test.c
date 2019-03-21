@@ -1,13 +1,3 @@
-/* This file is only for reference. It cannot be compiled successfully, 
- * because m_set_procs(), m_get_numprocs() is not supported. Please 
- * write your own parallel version (Pthread, OpenMP, or MPI verion). For 
- * instance, you should use pthread_create() and pthread_join() to 
- * write a Pthread version, and use MPI initilization and communication
- * functions to write a MPI version.
- */
-
-/* Demostration code - Gaussian elimination without pivoting.
- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,8 +9,6 @@
 #include <time.h>
 #include <pthread.h>
  #include <string.h>
-// #include <ulocks.h>
-// #include <task.h>
 
 /* -------------------------------- Gloobal variables */
 /* Program Parameters */
