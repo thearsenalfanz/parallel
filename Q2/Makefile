@@ -3,7 +3,7 @@ LIB = -lpthread
 EXE0 = gauss
 
 $(EXE0): $(EXE0).exe
-	./$<
+	./$< 
 
 %.exe : %.c
 	$(CC) $(LIB) -o $@ $^
