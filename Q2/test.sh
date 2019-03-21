@@ -1,6 +1,6 @@
 #!/bin/bash
 make clean
-make
+make all
 for j in 1 2 4 8
 do
 	for((i=100; i< 2000; i+=100))  

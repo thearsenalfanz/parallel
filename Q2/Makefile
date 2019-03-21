@@ -1,7 +1,7 @@
 CC = gcc
 LIB = -lpthread
-EXE0 = gauss
-EXE1 = gauss_test
+EXE0 = gauss_test
+EXE1 = gauss
 
 $(EXE0): $(EXE0).exe
 	./$< 
