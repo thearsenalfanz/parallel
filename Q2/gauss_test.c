@@ -29,6 +29,7 @@
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
 int gnorm;
+int seed;
 
 /* Matrices and vectors */
 volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
@@ -126,6 +127,8 @@ void parameters(int argc, char **argv) {
 void initialize_inputs() {
   int row, col;
 
+  srand(time_seed());
+  srand(seed);
   // printf("\nInitializing...\n");
   for (col = 0; col < N; col++) {
     for (row = 0; row < N; row++) {
@@ -166,7 +169,12 @@ void print_X() {
   }
 }
 
-void main(int argc, char **argv) {
+void init (int m, int t, int s)
+{
+  N = m;
+  procs = t;
+  seed = s;
+
   /* Timing variables */
   struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
   struct timezone tzdummy;
@@ -175,7 +183,7 @@ void main(int argc, char **argv) {
   struct tms cputstart, cputstop;  /* CPU times for my processes */
 
   /* Process program parameters */
-  parameters(argc, argv);
+  // parameters(argc, argv);
 
   /* Initialize A and B */
   initialize_inputs();
@@ -222,6 +230,26 @@ void main(int argc, char **argv) {
   printf("--------------------------------------------\n");*/
 
 }
+
+
+void main(int argc, char **argv) {
+  int i,j;
+  int thread[4] = {1,2,4,8};
+  int s = 0;
+
+  fp = fopen("result.csv", "w+");
+  for(i=100; i< 2000; i+=100)
+  {
+    for(j = 0; j < 4; j++)
+    {
+      init(i,j,s);
+    }
+  }
+  fclose(fp);
+
+
+}
+
 
 /* thread function*/
 void *eliminate(void *param)
