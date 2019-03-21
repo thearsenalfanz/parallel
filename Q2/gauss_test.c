@@ -83,15 +83,14 @@ void parameters(int argc, char **argv) {
     }
     else {
       if (argc == 4) {
-  seed = atoi(argv[3]);
-  srand(seed);
-  printf("Random seed = %i\n", seed);
+        seed = atoi(argv[3]);
+        srand(seed);
+        // printf("Random seed = %i\n", seed);
       }
       else {
-  printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
-         argv[0]);
-  printf("       %s submit\n", argv[0]);
-  exit(0);
+        // printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n", argv[0]);
+        // printf("       %s submit\n", argv[0]);
+        exit(0);
       }
     }
   }
@@ -127,7 +126,7 @@ void parameters(int argc, char **argv) {
 void initialize_inputs() {
   int row, col;
 
-  printf("\nInitializing...\n");
+  // printf("\nInitializing...\n");
   for (col = 0; col < N; col++) {
     for (row = 0; row < N; row++) {
       A[row][col] = (float)rand() / 32768.0;
@@ -204,7 +203,7 @@ void main(int argc, char **argv) {
 
   /* Display timing results */
   // printf("\nElapsed time = %g ms.\n", (float)(usecstop - usecstart)/(float)1000);
-  printf("%d,%d,%g ms.\n",N,procs, (float)(usecstop - usecstart)/(float)1000);
+  printf("%d,%d,%g\n",N,procs, (float)(usecstop - usecstart)/(float)1000);
   /*printf("               (%g ms according to times())\n", (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
 
   printf("(CPU times are accurate to the nearest %g ms)\n",
