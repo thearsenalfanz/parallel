@@ -120,7 +120,7 @@ void *find_min_rw(void *list_ptr) {
 
 	/* vars */
 	int *partial_list_pointer = NULL;
-	int my_min = 0;
+	int my_min = minimum_value;
 	long i = 0;
 	mylib_rwlock_t read_write_lock;
 	/* ---- */

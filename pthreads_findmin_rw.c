@@ -33,7 +33,7 @@ void *find_min_rw(void *list_ptr) {
 
 	/* vars */
 	int *partial_list_pointer = NULL;
-	int my_min = 0;
+	int my_min = minimum_value;
 	long i = 0;
 	pthread_rwlock_t read_write_lock;
 	/* ---- */
@@ -44,13 +44,13 @@ void *find_min_rw(void *list_ptr) {
 			my_min = partial_list_pointer[i];
 
 	/* initalize */
-	pthread_rwlock_init(&read_write_lock);
+	pthread_rwlock_init(&read_write_lock,NULL);
 
 	/* lock the mutex associated with minimum_value and update the variable as required */
-	pthread_rwlock_rlock(&read_write_lock);
+	pthread_rwlock_rdlock(&read_write_lock);
 	if (my_min < minimum_value) {
 		pthread_rwlock_unlock(&read_write_lock);
-		pthread_rwlock_wlock(&read_write_lock);
+		pthread_rwlock_wrlock(&read_write_lock);
 		minimum_value = my_min;
 	}
 	/* and unlock the mutex */
