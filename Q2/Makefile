@@ -1,12 +1,9 @@
 CC = gcc
 LIB = -lpthread
 EXE0 = gauss
-EXE1 = gauss_test
 
 $(EXE0): $(EXE0).exe
 	./$< 1000 8 0 
-$(EXE1): $(EXE1).exe
-	./$< 
 
 %.exe : %.c
 	$(CC) $(LIB) -o $@ $^ -w

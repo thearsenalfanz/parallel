@@ -1,6 +1,5 @@
 #!/bin/bash
-make clean
-make all
+gcc gauss_test.c -o ./gauss_test.exe -lpthread
 for j in 1 2 4 8
 do
 	for((i=100; i< 2000; i+=100))  
