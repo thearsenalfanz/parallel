@@ -219,66 +219,56 @@ void main(int argc, char **argv) {
    (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
       (cputstart.tms_cutime + cputstart.tms_cstime) ) /
    (float)CLOCKS_PER_SEC * 1000);
-      /* Contrary to the man pages, this appears not to include the parent */
   printf("--------------------------------------------\n");
 
 }
 
-/* ------------------ Above Was Provided --------------------- */
-
-/****** You will replace this routine with your own parallel version *******/
-/* Provided global variables are MAXN, N, procs, A[][], B[], and X[],
- * defined in the beginning of this code.  X[] is initialized to zeros.
- */
-
+/* thread function*/
 void *eliminate(void *param)
 {
     int norm, row, col;  /* Normalization row, and zeroing element row and col */
-    float multiplier;
-    int i = *((int *) param);
+    float multiplier; /* multiplier */
+    int i = *((int *) param); /* thread index */
     norm = gnorm;
 
-    printf("===========THREAD %d.\n",i);
+    /* thread running for assigned rows */
     for (row = norm+1+i; row < N; row+=procs) {
       // printf("[%d] ROW %d\n",i, row);
       multiplier = A[row][norm] / A[norm][norm]; /* Division step */
       for (col = norm; col < N; col++) {
-        printf("[%d] CELL [%d,%d].\n",i, row, col);
+        // printf("[%d] CELL [%d,%d].\n",i, row, col);
         A[row][col] -= A[norm][col] * multiplier; /* Elimination step */
       }
       B[row] -= B[norm] * multiplier;
-      // print_inputs();
     }
 
+    /* increment barrier wait */
     pthread_barrier_wait(&row_barrier);
-
     pthread_exit(0);
 }
 
 
 void gauss() {
-  int norm, row, col;  /* Normalization row, and zeroing element row and col */
-  float multiplier;
-  long partial_list_size;
-  pthread_t *tids = NULL;
+  int norm;  /* Normalization row, and zeroing element row and col */
+  pthread_t *tids = NULL; /* thread id*/
   int i,t;
-  int *index = calloc(procs, sizeof(int));
+  int *index = calloc(procs, sizeof(int)); /* thread index for row assignment for each thread */
 
-  /* Initialize thead ids*/
+  /* Initialize thread ids*/
   tids = malloc(sizeof(pthread_t) * procs);
   if (tids == NULL) {
     printf("Error : could not init the tids\n");
-    return -1;
   }
 
+  /* initialize barrier */
   pthread_barrier_init(&row_barrier,NULL,procs+1);
 
+  /* Gaussian elimination */
   for (norm = 0; norm < N-1; norm++) {
     gnorm = norm;
-    // printf("================== ROUND: %d\n",gnorm );
 
-    for (t = 0; t < procs; t++) {
     /* create threads */
+    for (t = 0; t < procs; t++) {
       index[t] = t;
       // printf("INDEX %d = %d\n",t,index[t] );
       if (pthread_create(&tids[t], NULL, &eliminate, &index[t]) != 0) {
@@ -286,18 +276,17 @@ void gauss() {
       }
     }
 
+    /* wait until all threads are done*/
     pthread_barrier_wait(&row_barrier);
 
+    /* join threads */
     for (t = 0; t < procs; t++) {
       if (pthread_join(tids[t], &index[t]) != 0) {
         printf("Error : pthread_join failed on joining thread %d\n", t);
       }
-      // print_inputs();
     }
 
-  }  
-
-
+  }
 
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
