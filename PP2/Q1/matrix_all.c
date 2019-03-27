@@ -127,7 +127,7 @@ int main(int argc, char **argv)
         // #pragma omp parallel for shared (A, B, C)
         for (j = 0; j < N; j++) {
             // C[i][j] = 0;
-            Cij = 0;
+            // Cij = 0;
             // #pragma omp parallel for shared (A, B, C)
             for (k = 0; k < N; k++) {
                 // #pragma omp critical
