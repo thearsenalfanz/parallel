@@ -100,8 +100,8 @@ void parameters(int argc, char **argv) {
   }
 
   /* Print parameters */
-  printf("\nMatrix dimension N = %i.\n", N);
-  printf("Number of processors = %i.\n", procs);
+  // printf("\nMatrix dimension N = %i.\n", N);
+  // printf("Number of processors = %i.\n", procs);
 
   /* Set number of processors */
   m_set_procs(procs);
@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
 
   /* Display timing results */
   // printf("N = %d, #Thread = %d, Elapsed time = %g ms\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
-    printf("%d,%d,%g\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
+  printf("%d,%d,%g\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
 
   /*printf("               (%g ms according to times())\n",
    *       (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
