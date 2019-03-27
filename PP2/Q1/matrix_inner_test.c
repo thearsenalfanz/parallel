@@ -140,7 +140,7 @@ int main(int argc, char **argv)
     // printf("N = %d, #Thread = %d, Elapsed time = %g ms\n",N, nthreads, (end-start);
     printf("%d,%d,%f\n",N, nthreads, (end-start));
     // printf("Runtime of %d threads = %f seconds\n", nthreads, (end-start));
-    printf("\n");
+    // printf("\n");
 
 
     exit(0);
