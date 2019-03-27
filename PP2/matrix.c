@@ -3,13 +3,12 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/time.h>
-
 #include <omp.h>
 
 
 /* -----------------------------------Global Vars */
-#define MAXN 100
-int tid, nthreads, N, seed;
+#define MAXN 1000
+int nthreads, N, seed;
 volatile float A[MAXN][MAXN], B[MAXN][MAXN], C[MAXN][MAXN];
 
 /* Initialize A and B (and X to 0.0s) */
@@ -77,6 +76,7 @@ gettime()
 int main(int argc, char **argv)
 {
     int i,j,k;
+    int tid;
     int ret = 0;
     double start,end;
 
@@ -114,6 +114,8 @@ int main(int argc, char **argv)
     initialize_inputs();
 
     print_inputs();
+
+    printf("Number of threads = %d\n", nthreads);
 
     start = gettime();
 
