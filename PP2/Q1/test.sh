@@ -1,7 +1,7 @@
 #!/bin/bash
 NAME=matrix_inner_test
 C="$NAME.c"
-EXE="$EXE.c"
+EXE="$NAME.exe"
 gcc "$C" -o "$EXE" -fopenmp -w
 for j in 1 2 4 8
 do
