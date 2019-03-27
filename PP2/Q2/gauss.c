@@ -214,8 +214,8 @@ void main(int argc, char **argv) {
 
 void gauss() {
   int norm, row, col;  /* Normalization row, and zeroing  element row and col */
-  int tid;
-  float multiplier;
+  int tid; /*thread id*/
+  float multiplier; /*multiplier*/
 
 
   /* Gaussian elimination */
@@ -233,11 +233,11 @@ void gauss() {
     }
     #pragma omp barrier
   }
+
+  
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
    */
-
-
   /* Back substitution */
   for (row = N - 1; row >= 0; row--) {
     X[row] = B[row];
