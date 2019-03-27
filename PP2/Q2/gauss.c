@@ -151,7 +151,7 @@ void print_X() {
   }
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
   /* Timing variables */
   struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
   struct timezone tzdummy;
@@ -208,6 +208,8 @@ void main(int argc, char **argv) {
       /* Contrary to the man pages, this appears not to include the parent */
   printf("--------------------------------------------\n");
 
+  return 0;
+
 }
 
 /* ------------------ Above Was Provided --------------------- */
@@ -230,7 +232,6 @@ void gauss() {
       }
       B[row] -= B[norm] * multiplier;
     }
-    #pragma omp barrier
   }
 
   
