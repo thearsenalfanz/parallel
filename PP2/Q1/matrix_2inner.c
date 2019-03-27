@@ -127,7 +127,7 @@ int main(int argc, char **argv)
         for (j = 0; j < N; j++) {
             // C[i][j] = 0;
             // Cij = 0;
-             #pragma omp for shared (A, B, C)
+             #pragma omp for
             for (k = 0; k < N; k++) {
                 // #pragma omp critical
                 C[i][j] += A[i][k] * B[k][j];
