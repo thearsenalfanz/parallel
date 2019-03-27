@@ -120,17 +120,17 @@ int main(int argc, char **argv)
 
     start = gettime();
 
-    #pragma omp parallel for private (i,j,k) shared (A, B, C) reduction(+: Cij) collapse (3)
+    #pragma omp parallel for shared (A, B, C) reduction(+: Cij)
     for (i = 0; i < N; i++) {
         // tid = omp_get_thread_num();
         // printf("from thread = %d\n", tid);
-        // #pragma omp parallel for shared (A, B, C)
+        #pragma omp parallel for shared (A, B, C)
         for (j = 0; j < N; j++) {
             C[i][j] = 0;
             Cij = 0;
-            // #pragma omp parallel for shared (A, B, C)
+            #pragma omp parallel for shared (A, B, C)
             for (k = 0; k < N; k++) {
-                #pragma omp critical
+                // #pragma omp critical
                 C[i][j] += A[i][k] * B[k][j];
                 Cij = C[i][j];
             }
