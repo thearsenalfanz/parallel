@@ -9,7 +9,7 @@ do
 	do
 		./"$EXE" -N $i -T $j
     done
-	for((i=100; i< 2000; i+=100))  
+	for((i=100; i< 1500; i+=100))  
 	do
 		./"$EXE" -N $i -T $j
     done
