@@ -12,7 +12,7 @@ do
     done
 	for((i=100; i< 2000; i+=100))  
 	do
-		./matrix_print.exe $i $j
+		./matrix_print.exe -N $i -T $j
     done
 done
 make clean

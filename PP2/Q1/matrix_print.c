@@ -122,8 +122,8 @@ int main(int argc, char **argv)
     #pragma omp parallel private(tid) shared (A, B, C, N) num_threads(nthreads)
     #pragma omp for schedule(static)
     for (i = 0; i < N; i++) {
-        tid = omp_get_thread_num();
-        printf("from thread = %d\n", tid);
+        // tid = omp_get_thread_num();
+        // printf("from thread = %d\n", tid);
         for (j = 0; j < N; j++) {
             C[i][j] = 0;
             for (k = 0; k < N; k++) {
