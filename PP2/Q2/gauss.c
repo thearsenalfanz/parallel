@@ -219,10 +219,11 @@ void gauss() {
   int tid; /*thread id*/
   float multiplier; /*multiplier*/
 
+  omp_set_num_threads(procs);
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
-    #pragma omp parallel for private(multiplier, row, col) shared (A, B) num_threads(procs)
+    #pragma omp parallel for private(multiplier, row, col) shared (A, B) //num_threads(procs)
     for (row = norm + 1; row < N; row++) {
       // tid = omp_get_thread_num();
       // printf("Hello World from thread = %d\n", tid);
