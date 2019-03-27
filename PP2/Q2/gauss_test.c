@@ -24,9 +24,9 @@ volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
 
 /* Prototype */
 void gauss();  /* The function you will provide.
-		* It is this routine that is timed.
-		* It is called only on the parent.
-		*/
+    * It is this routine that is timed.
+    * It is called only on the parent.
+    */
 
 /* returns a seed for srand based on the time */
 unsigned int time_seed() {
@@ -68,15 +68,14 @@ void parameters(int argc, char **argv) {
     }
     else {
       if (argc == 4) {
-	seed = atoi(argv[3]);
-	srand(seed);
-	printf("Random seed = %i\n", seed);
+  seed = atoi(argv[3]);
+  srand(seed);
+  // printf("Random seed = %i\n", seed);
       }
       else {
-	printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
-	       argv[0]);
-	printf("       %s submit\n", argv[0]);
-	exit(0);
+  // printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n", argv[0]);
+  // printf("       %s submit\n", argv[0]);
+  exit(0);
       }
     }
   }
@@ -94,7 +93,7 @@ void parameters(int argc, char **argv) {
     }
     if (procs > m_get_numprocs()) {
       printf("Warning: %i processors requested; only %i available.\n",
-	     procs, m_get_numprocs());
+       procs, m_get_numprocs());
       procs = m_get_numprocs();
     }
   }
@@ -130,7 +129,7 @@ void print_inputs() {
     printf("\nA =\n\t");
     for (row = 0; row < N; row++) {
       for (col = 0; col < N; col++) {
-	printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
+  printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
       }
     }
     printf("\nB = [");
@@ -166,7 +165,7 @@ int main(int argc, char **argv) {
   initialize_inputs();
 
   /* Print input matrices */
-  print_inputs();
+  // print_inputs();
 
   /* Start Clock */
   // printf("\nStarting clock.\n");
@@ -184,30 +183,28 @@ int main(int argc, char **argv) {
   usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
 
   /* Display output */
-  print_X();
+  // print_X();
 
   /* Display timing results */
-  // printf("N = %d, #Thread = %d, Elapsed time = %g ms\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
   printf("%d,%d,%g\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
-
   /*printf("               (%g ms according to times())\n",
    *       (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
    */
   /*printf("(CPU times are accurate to the nearest %g ms)\n",
-	 1.0/(float)CLOCKS_PER_SEC * 1000.0);
+   1.0/(float)CLOCKS_PER_SEC * 1000.0);
   printf("My total CPU time for parent = %g ms.\n",
-	 (float)( (cputstop.tms_utime + cputstop.tms_stime) -
-		  (cputstart.tms_utime + cputstart.tms_stime) ) /
-	 (float)CLOCKS_PER_SEC * 1000);
+   (float)( (cputstop.tms_utime + cputstop.tms_stime) -
+      (cputstart.tms_utime + cputstart.tms_stime) ) /
+   (float)CLOCKS_PER_SEC * 1000);
   printf("My system CPU time for parent = %g ms.\n",
-	 (float)(cputstop.tms_stime - cputstart.tms_stime) /
-	 (float)CLOCKS_PER_SEC * 1000);
+   (float)(cputstop.tms_stime - cputstart.tms_stime) /
+   (float)CLOCKS_PER_SEC * 1000);
   printf("My total CPU time for child processes = %g ms.\n",
-	 (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
-		  (cputstart.tms_cutime + cputstart.tms_cstime) ) /
-	 (float)CLOCKS_PER_SEC * 1000);
-  printf("--------------------------------------------\n");
-  */
+   (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
+      (cputstart.tms_cutime + cputstart.tms_cstime) ) /
+   (float)CLOCKS_PER_SEC * 1000);
+  printf("--------------------------------------------\n");*/
+
   return 0;
 
 }
@@ -219,10 +216,11 @@ void gauss() {
   int tid; /*thread id*/
   float multiplier; /*multiplier*/
 
+  omp_set_num_threads(procs);
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
-    #pragma omp parallel for private(multiplier, row, col) shared (A, B) num_threads(procs)
+    #pragma omp parallel for private(multiplier, row, col) shared (A, B)
     for (row = norm + 1; row < N; row++) {
       // tid = omp_get_thread_num();
       // printf("Hello World from thread = %d\n", tid);
