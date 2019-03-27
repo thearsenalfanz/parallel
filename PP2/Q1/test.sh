@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=matrix_inner_print
+NAME=matrix_inner_test
 C="$NAME.c"
 EXE="$EXE.c"
 gcc "$C" -o "$NAME" -fopenmp -w
