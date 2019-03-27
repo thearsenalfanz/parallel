@@ -1,5 +1,5 @@
 #!/bin/bash
-gcc matrix_print.c -o ./matrix_print.exe -fomp -w
+gcc matrix_print.c -o ./matrix_print.exe -fopenmp -w
 for j in 1 2 4 8
 do
 	for((i=0; i< 10; i+=1))  
