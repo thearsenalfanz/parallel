@@ -19,8 +19,8 @@ void initialize_inputs() {
     printf("\nInitializing inputs\n");
     for (col = 0; col < N; col++) {
         for (row = 0; row < N; row++) {
-            A[row][col] = (float)rand() / 32768.0;
-            B[row][col] = (float)rand() / 32768.0;
+            A[row][col] = rand() % 10;
+            B[row][col] = rand() % 10;
         }
     }
 }
@@ -65,17 +65,17 @@ void print_output() {
 static double 
 gettime()
 {
-	struct timeval	tp;
-	struct timezone	tzp;
-	int i = 0;
+    struct timeval  tp;
+    struct timezone tzp;
+    int i = 0;
 
-	i = gettimeofday(&tp, &tzp);
-	return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
+    i = gettimeofday(&tp, &tzp);
+    return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
 int main(int argc, char **argv)
 {
-    int i,j,k;
+    int i,j,k, Cij;
     int tid;
     int ret = 0;
     double start,end;
@@ -116,21 +116,23 @@ int main(int argc, char **argv)
     print_inputs();
 
     printf("Number of threads = %d\n", nthreads);
+    omp_set_num_threads(nthreads);
 
     start = gettime();
-    #pragma omp parallel private(tid) shared (A, B, C, N) num_threads(nthreads)
-    #pragma omp for schedule(static)
+
+    #pragma omp parallel for shared (A, B, C) reduction(+: Cij)
     for (i = 0; i < N; i++) {
         // tid = omp_get_thread_num();
         // printf("from thread = %d\n", tid);
-        #pragma omp parallel private(tid) shared (A, B, C, N) num_threads(nthreads)
-        #pragma omp for schedule(static)
+        #pragma omp parallel for shared (A, B, C)
         for (j = 0; j < N; j++) {
             C[i][j] = 0;
-            #pragma omp parallel private(tid) shared (A, B, C, N) num_threads(nthreads)
-            #pragma omp for schedule(static)
+            Cij = 0;
+            #pragma omp parallel for shared (A, B, C)
             for (k = 0; k < N; k++) {
+                #pragma omp critical
                 C[i][j] += A[i][k] * B[k][j];
+                Cij = C[i][j];
             }
         }
     }

@@ -19,8 +19,8 @@ void initialize_inputs() {
     printf("\nInitializing inputs\n");
     for (col = 0; col < N; col++) {
         for (row = 0; row < N; row++) {
-            A[row][col] = (float)rand() / 32768.0;
-            B[row][col] = (float)rand() / 32768.0;
+            A[row][col] = rand() % 10;
+            B[row][col] = rand() % 10;
         }
     }
 }
@@ -65,12 +65,12 @@ void print_output() {
 static double 
 gettime()
 {
-	struct timeval	tp;
-	struct timezone	tzp;
-	int i = 0;
+    struct timeval  tp;
+    struct timezone tzp;
+    int i = 0;
 
-	i = gettimeofday(&tp, &tzp);
-	return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
+    i = gettimeofday(&tp, &tzp);
+    return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
 int main(int argc, char **argv)
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     print_inputs();
 
     printf("Number of threads = %d\n", nthreads);
-
+    
     start = gettime();
 
     for (i = 0; i < N; i++) {
