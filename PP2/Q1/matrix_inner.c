@@ -7,7 +7,7 @@
 
 
 /* -----------------------------------Global Vars */
-#define MAXN 1000
+#define MAXN 2000
 int nthreads, N, seed;
 volatile float A[MAXN][MAXN], B[MAXN][MAXN], C[MAXN][MAXN];
 

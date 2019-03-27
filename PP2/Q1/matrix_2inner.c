@@ -7,7 +7,7 @@
 
 
 /* -----------------------------------Global Vars */
-#define MAXN 1000
+#define MAXN 2000
 int nthreads, N, seed;
 volatile float A[MAXN][MAXN], B[MAXN][MAXN], C[MAXN][MAXN];
 
@@ -123,11 +123,11 @@ int main(int argc, char **argv)
     for (i = 0; i < N; i++) {
         // tid = omp_get_thread_num();
         // printf("from thread = %d\n", tid);
-        #pragma omp parallel for shared (A, B, C) reduction(+: Cij)
+        #pragma omp parallel for private(j,k) shared (A, B, C) reduction(+: Cij) collapse (2)
         for (j = 0; j < N; j++) {
             C[i][j] = 0;
             Cij = 0;
-            #pragma omp parallel for shared (A, B, C)
+            // #pragma omp parallel for shared (A, B, C)
             for (k = 0; k < N; k++) {
                 #pragma omp critical
                 C[i][j] += A[i][k] * B[k][j];
