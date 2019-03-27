@@ -75,7 +75,7 @@ gettime()
 
 int main(int argc, char **argv)
 {
-    int i,j,k;
+    int i,j,k, Cij;
     int tid;
     int ret = 0;
     double start,end;
