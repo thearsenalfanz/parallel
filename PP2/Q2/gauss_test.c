@@ -186,7 +186,8 @@ int main(int argc, char **argv) {
   // print_X();
 
   /* Display timing results */
-  printf("%d,%d,%g\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
+  printf("N = %d, #Thread = %d, Elapsed time = %g ms\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
+  // printf("%d,%d,%g\n",N, procs, (float)(usecstop - usecstart)/(float)1000);
   /*printf("               (%g ms according to times())\n",
    *       (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
    */
