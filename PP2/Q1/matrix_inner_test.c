@@ -7,7 +7,7 @@
 
 
 /* -----------------------------------Global Vars */
-#define MAXN 1000
+#define MAXN 2000
 int nthreads, N, seed;
 volatile float A[MAXN][MAXN], B[MAXN][MAXN], C[MAXN][MAXN];
 
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
     seed = 0;
 
     /* print usage */
-    printf("Usage : %s%s", argv[0], " -S <seed> -N <num_elems> -T <num_threads> -h\n");
+    // printf("Usage : %s%s", argv[0], " -S <seed> -N <num_elems> -T <num_threads> -h\n");
     /* parse the command line args */
     while ((ret = getopt(argc, argv, "S:T:N:h")) != -1) {
         switch (ret) {
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
     // print_inputs();
 
-    printf("Number of threads = %d\n", nthreads);
+    // printf("Number of threads = %d\n", nthreads);
     
     start = gettime();
 
@@ -137,8 +137,10 @@ int main(int argc, char **argv)
     end = gettime();
 
     // print_output();
-    printf("%d,%d,%f\n", nthreads,N, (end-start));
-    // printf("\n");
+    // printf("N = %d, #Thread = %d, Elapsed time = %g ms\n",N, nthreads, (end-start);
+    printf("%d,%d,%f\n",N, nthreads, (end-start);
+    // printf("Runtime of %d threads = %f seconds\n", nthreads, (end-start));
+    printf("\n");
 
 
     exit(0);
