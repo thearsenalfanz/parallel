@@ -1,5 +1,5 @@
 CC = gcc
-LIB = -lpthread
+LIB = -fopenmp
 EXE0 = gauss
 
 $(EXE0): $(EXE0).exe
