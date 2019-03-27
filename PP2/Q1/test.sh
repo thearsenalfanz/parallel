@@ -6,14 +6,10 @@ do
 	do
 		./matrix_print.exe $i $j
     done
-done
-do
 	for((i=10; i< 100; i+=10))  
 	do
 		./matrix_print.exe $i $j
     done
-done
-do
 	for((i=100; i< 2000; i+=100))  
 	do
 		./matrix_print.exe $i $j

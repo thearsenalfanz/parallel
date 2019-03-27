@@ -113,9 +113,9 @@ int main(int argc, char **argv)
 
     initialize_inputs();
 
-    print_inputs();
+    // print_inputs();
 
-    printf("Number of threads = %d\n", nthreads);
+    // printf("Number of threads = %d\n", nthreads);
 
     start = gettime();
 
@@ -134,9 +134,9 @@ int main(int argc, char **argv)
 
     end = gettime();
 
-    print_output();
+    // print_output();
     printf("%d,%f\n", nthreads, (end-start));
-    printf("\n");
+    // printf("\n");
 
 
     exit(0);
