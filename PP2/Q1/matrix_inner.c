@@ -125,7 +125,7 @@ int main(int argc, char **argv)
         for (j = 0; j < N; j++) {
             C[i][j] = 0;
             Cij = 0;
-            #pragma omp parallel private(tid) shared (A, B, C) num_threads(nthreads) reduction(+: Cij)
+            #pragma omp parallel for shared (A, B, C) num_threads(nthreads) reduction(+: Cij)
             for (k = 0; k < N; k++) {
                 C[i][j] += A[i][k] * B[k][j];
                 Cij = C[i][j];
