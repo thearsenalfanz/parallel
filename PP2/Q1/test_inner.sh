@@ -1,5 +1,5 @@
 #!/bin/bash
-name = matrix_print
+name = matrix_inner_print
 gcc $name.c -o ./$name.exe -fopenmp -w
 for j in 1 2 4 8
 do
