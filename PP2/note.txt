@@ -1,0 +1,2 @@
+gcc -o ms matrix_serial.c -fopenmp
+gcc -o m matrix.c -fopenmp

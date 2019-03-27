@@ -124,8 +124,7 @@ int main(int argc, char **argv)
         // printf("from thread = %d\n", tid);
         for (j = 0; j < N; j++) {
             C[i][j] = 0;
-            #pragma omp parallel private(tid) shared (A, B, C, N) num_threads(nthreads)
-            #pragma omp for schedule(static)
+            #pragma omp parallel private(tid) shared (A, B, C) num_threads(nthreads) reduction(+: C[i][j])
             for (k = 0; k < N; k++) {
                 C[i][j] += A[i][k] * B[k][j];
             }
