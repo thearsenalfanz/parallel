@@ -16,7 +16,7 @@ void initialize_inputs() {
     int row, col;
     srand(seed);
 
-    printf("\nInitializing inputs\n");
+    // printf("\nInitializing inputs\n");
     for (col = 0; col < N; col++) {
         for (row = 0; row < N; row++) {
             A[row][col] = (float)rand() / 32768.0;
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     end = gettime();
 
     // print_output();
-    printf("%d,%f\n", nthreads, (end-start));
+    printf("%d,%d,%f\n", nthreads,N, (end-start));
     // printf("\n");
 
 
