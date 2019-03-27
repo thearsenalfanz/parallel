@@ -7,7 +7,7 @@
 
 
 /* -----------------------------------Global Vars */
-#define MAXN 2000
+#define MAXN 1000
 int nthreads, N, seed;
 volatile float A[MAXN][MAXN], B[MAXN][MAXN], C[MAXN][MAXN];
 
@@ -19,8 +19,8 @@ void initialize_inputs() {
     // printf("\nInitializing inputs\n");
     for (col = 0; col < N; col++) {
         for (row = 0; row < N; row++) {
-            A[row][col] = (float)rand() / 32768.0;
-            B[row][col] = (float)rand() / 32768.0;
+            A[row][col] = rand() % 10;
+            B[row][col] = rand() % 10;
         }
     }
 }
@@ -65,17 +65,17 @@ void print_output() {
 static double 
 gettime()
 {
-	struct timeval	tp;
-	struct timezone	tzp;
-	int i = 0;
+    struct timeval  tp;
+    struct timezone tzp;
+    int i = 0;
 
-	i = gettimeofday(&tp, &tzp);
-	return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
+    i = gettimeofday(&tp, &tzp);
+    return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
 int main(int argc, char **argv)
 {
-    int i,j,k;
+    int i,j,k, Cij;
     int tid;
     int ret = 0;
     double start,end;
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
     seed = 0;
 
     /* print usage */
-    // printf("Usage : %s%s", argv[0], " -S <seed> -N <num_elems> -T <num_threads> -h\n");
+    printf("Usage : %s%s", argv[0], " -S <seed> -N <num_elems> -T <num_threads> -h\n");
     /* parse the command line args */
     while ((ret = getopt(argc, argv, "S:T:N:h")) != -1) {
         switch (ret) {
@@ -115,20 +115,21 @@ int main(int argc, char **argv)
 
     // print_inputs();
 
-    // printf("Number of threads = %d\n", nthreads);
-
+    printf("Number of threads = %d\n", nthreads);
+    
     start = gettime();
 
-    
     for (i = 0; i < N; i++) {
         // tid = omp_get_thread_num();
         // printf("from thread = %d\n", tid);
         for (j = 0; j < N; j++) {
             C[i][j] = 0;
-            #pragma omp parallel private(tid) shared (A, B, C, N) num_threads(nthreads)
-            #pragma omp for schedule(static)
+            Cij = 0;
+            #pragma omp parallel for shared (A, B, C) num_threads(nthreads) reduction(+: Cij)
             for (k = 0; k < N; k++) {
+                #pragma omp critical
                 C[i][j] += A[i][k] * B[k][j];
+                Cij = C[i][j];
             }
         }
     }
