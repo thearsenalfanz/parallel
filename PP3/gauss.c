@@ -191,7 +191,9 @@ int main(int argc, char **argv) {
     // gettimeofday(&etstart, &tzdummy);
     // etstart2 = times(&cputstart);
     startTime = MPI_Wtime();
-    }
+  }
+
+  printf("hello world from %d\n", myrank);
 
   ///////////////////////////////////////////
 
@@ -218,12 +220,13 @@ int main(int argc, char **argv) {
     MPI_Bcast (&B[norm], 1 , MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
     for (row = norm + 1; row < N; row++) 
     {
+       printf("[proc %d] row = %d\n\n",myrank,row);
       if(map[row] == myrank)
       {
         printf( "map[%d] = %d of %d\n", row, map[row], myrank, numnodes );
         printf("[proc %d] A[%d][%d]/ A[%d][%d] = %f / %f \n",myrank, row,norm, norm, norm, A[row][norm], A[norm][norm]);
         multiplier = A[row][norm] / A[norm][norm];
-        printf("[proc %d]  = %f\n",myrank, multiplier);
+        printf("[proc %d] multiplier = %f\n",myrank, multiplier);
       }
     }
     for (row = norm + 1; row < N; row++) 
