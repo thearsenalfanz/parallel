@@ -19,6 +19,7 @@
 // #include <ulocks.h>
 // #include <task.h>
 #include <time.h>
+ #include <string.h>
 
 /* Program Parameters */
 #define MAXN 2000  /* Max value of N */
@@ -162,7 +163,7 @@ void print_X() {
   }
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
   /* Timing variables */
   struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
   struct timezone tzdummy;
@@ -218,6 +219,8 @@ void main(int argc, char **argv) {
 	 (float)CLOCKS_PER_SEC * 1000);
       /* Contrary to the man pages, this appears not to include the parent */
   printf("--------------------------------------------\n");
+
+  return 0;
 
 }
 
