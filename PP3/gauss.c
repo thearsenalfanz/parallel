@@ -211,6 +211,8 @@ int main(int argc, char **argv) {
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
 
+    printf("[proc %d] norm = %d\n\n",myrank,norm);
+
     /* parallelize */
     MPI_Bcast (&A[norm][norm], N-norm, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
     MPI_Bcast (&B[norm], 1 , MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
@@ -219,7 +221,7 @@ int main(int argc, char **argv) {
       if(map[row] == myrank)
       {
         printf( "map[%d] = %d of %d\n", row, map[row], myrank, numnodes );
-        printf("[proc %d] A[%d][%d]/ A[%d][%d] = %f / %f ",myrank, row,norm, norm, norm, A[row][norm], A[norm][norm]);
+        printf("[proc %d] A[%d][%d]/ A[%d][%d] = %f / %f \n",myrank, row,norm, norm, norm, A[row][norm], A[norm][norm]);
         multiplier = A[row][norm] / A[norm][norm];
         printf("[proc %d]  = %f\n",myrank, multiplier);
       }
@@ -236,6 +238,7 @@ int main(int argc, char **argv) {
         printf("[proc %d]  B[%d] = %f\n",myrank, row, B[row]);
       }
     }
+
   }
 
   
