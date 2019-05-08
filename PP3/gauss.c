@@ -169,35 +169,41 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
   MPI_Comm_size(MPI_COMM_WORLD, &numnodes);
 
-  /* Process program parameters */
-  parameters(argc, argv);
+  //////////////////////////////////////////////
+  if(myrank==0)
+  {
+    /* Process program parameters */
+    parameters(argc, argv);
 
-  /* Initialize A and B */
-  initialize_inputs();
+    /* Initialize A and B */
+    initialize_inputs();
 
-  /* Print input matrices */
-  print_inputs();
+    /* Print input matrices */
+    print_inputs();
 
-  /* Start Clock */
-  printf("\nStarting clock.\n");
-  gettimeofday(&etstart, &tzdummy);
-  etstart2 = times(&cputstart);
-  if (myrank == 0) {
+    /* Start Clock */
+    // printf("\nStarting clock.\n");
+    // gettimeofday(&etstart, &tzdummy);
+    // etstart2 = times(&cputstart);
     startTime = MPI_Wtime();
   }
-  
+
+  ///////////////////////////////////////////
 
   /* Gaussian Elimination */
   gauss();
 
-  /* Stop Clock */
-  gettimeofday(&etstop, &tzdummy);
-  etstop2 = times(&cputstop);
-  printf("Stopped clock.\n");
-  usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
-  usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
+  //////////////////////////////////////////
 
-  if (myrank == 0) {
+  if(myrank==0)
+  {
+    /* Stop Clock */
+    gettimeofday(&etstop, &tzdummy);
+    etstop2 = times(&cputstop);
+    printf("Stopped clock.\n");
+    usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
+    usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
+    
     /* Display output */
     print_X();
 
