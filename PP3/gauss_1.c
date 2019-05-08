@@ -53,7 +53,7 @@ int m_get_numprocs()
 }
 
 /* Set the program parameters from the command-line arguments */
-void parameters(int argc, char **argv) {
+void parameters(int argc, char **argv, int myrank) {
   int submit = 0;  /* = 1 if submission parameters should be used */
   int seed = 0;  /* Random seed */
   char uid[L_cuserid + 2]; /*User name */
@@ -71,15 +71,15 @@ void parameters(int argc, char **argv) {
     }
     else {
       if (argc == 4) {
-  seed = atoi(argv[3]);
-  srand(seed);
-  printf("Random seed = %i\n", seed);
+        seed = atoi(argv[3]);
+        srand(seed);
+        // printf("Random seed = %i\n", seed);
       }
       else {
-  printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
+        printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
          argv[0]);
-  printf("       %s submit\n", argv[0]);
-  exit(0);
+        printf("       %s submit\n", argv[0]);
+        exit(0);
       }
     }
   }
@@ -103,8 +103,12 @@ void parameters(int argc, char **argv) {
   }
 
   /* Print parameters */
-  printf("\nMatrix dimension N = %i.\n", N);
-  printf("Number of processors = %i.\n", procs);
+  if(myrank == 0)
+  {
+    printf("Random seed = %i\n", seed);
+    printf("\nMatrix dimension N = %i.\n", N);
+    printf("Number of processors = %i.\n", procs);
+  }
 
   /* Set number of processors */
   m_set_procs(procs);
