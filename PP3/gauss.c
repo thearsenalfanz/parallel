@@ -175,7 +175,7 @@ int main(int argc, char **argv) {
   // struct tms cputstart, cputstop;  /* CPU times for my processes */
   
   /* Matrices and vectors */
-  double **A, *B, *C, *X;
+  float *A, *B, *C, *X;
   double startTime, endTime;
   int myrank, numnodes;
 
@@ -196,13 +196,9 @@ int main(int argc, char **argv) {
   /* Process program parameters */
   parameters(argc, argv, myrank);
 
-  A = (double**)malloc(N * sizeof(double*));
-  for(i = 0; i < N; i++) 
-    A[i] = (double*)malloc(N * sizeof(double)); 
-
-  B = calloc(N,sizeof(double));
-  C = calloc(N,sizeof(double));
-  X = calloc(N,sizeof(double));
+  B = (float*)malloc(N*sizeof(float));
+  C = (float*)malloc(N*sizeof(float));
+  X = (float*)malloc(N*sizeof(float));
 
 
   if(myrank==0)
