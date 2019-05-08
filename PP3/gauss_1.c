@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
   //////////////////////////////////////////////
 
   /* Process program parameters */
-  parameters(argc, argv);
+  parameters(argc, argv, myrank);
 
   if(myrank==0)
   {
