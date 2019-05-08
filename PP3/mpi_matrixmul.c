@@ -15,6 +15,11 @@ int main(int argc, char *argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &numnodes);
   
   N = atoi(argv[1]);
+
+  char processor_name[MPI_MAX_PROCESSOR_NAME];
+  int name_len;
+  MPI_Get_processor_name(processor_name, &name_len);
+  printf("Hello world from node %s, process rank %d out of %d processes\n", processor_name, myrank, numnodes);
   
   // allocate A, B, and C --- note that you want these to be
   // contiguously allocated.  Workers need less memory allocated.
@@ -96,7 +101,7 @@ int main(int argc, char *argv[]) {
   for (i=0; i<stripSize; i++) {
     for (j=0; j<N; j++) {
       for (k=0; k<N; k++) {
-	C[i][j] += A[i][k] * B[k][j];
+  C[i][j] += A[i][k] * B[k][j];
       }
     }
   }
