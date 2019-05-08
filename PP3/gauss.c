@@ -12,7 +12,7 @@
 #define TAG 13
 
 /* Program Parameters */
-#define MAXN 4  /* Max value of N */
+#define MAXN 8  /* Max value of N */
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
 
   ///////////////////////////////////////////
 
-  /* Gaussian elimination */
+  // /* Gaussian elimination */
   // for (norm = 0; norm < N - 1; norm++) {
 
   //   printf("[proc %d] norm = %d\n\n",myrank,norm);
@@ -264,31 +264,33 @@ int main(int argc, char **argv) {
   // }
   // MPI_Barrier(MPI_COMM_WORLD);
 
-    for(k=0;k<N;k++)
+  /* Gaussian elimination */
+  for(k=0;k<N;k++)
+  {
+      /* parallelize */
+    MPI_Bcast (&A[k][k],N-k,MPI_DOUBLE,map[k],MPI_COMM_WORLD);
+    MPI_Bcast (&B[k],1,MPI_DOUBLE,map[k],MPI_COMM_WORLD);
+    for(i= k+1; i<N; i++) 
     {
-        MPI_Bcast (&A[k][k],N-k,MPI_DOUBLE,map[k],MPI_COMM_WORLD);
-        MPI_Bcast (&B[k],1,MPI_DOUBLE,map[k],MPI_COMM_WORLD);
-        for(i= k+1; i<N; i++) 
+      if(map[i] == myrank)
+      {
+        C[i]=A[i][k]/A[k][k];
+      }
+    }               
+    for(i= k+1; i<N; i++) 
+    {       
+      if(map[i] == myrank)
+      {
+        for(j=0;j<N;j++)
         {
-            if(map[i] == myrank)
-            {
-                C[i]=A[i][k]/A[k][k];
-            }
-        }               
-        for(i= k+1; i<N; i++) 
-        {       
-            if(map[i] == myrank)
-            {
-                for(j=0;j<N;j++)
-                {
-                    A[i][j]=A[i][j]-( C[i]*A[k][j] );
-                }
-                B[i]=B[i]-( C[i]*B[k] );
-            }
+          A[i][j]=A[i][j]-( C[i]*A[k][j] );
         }
-        MPI_Barrier(MPI_COMM_WORLD);
+        B[i]=B[i]-( C[i]*B[k] );
+      }
     }
     MPI_Barrier(MPI_COMM_WORLD);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
   
   /* (Diagonal elements are not normalized to 1.  This is treated in back
