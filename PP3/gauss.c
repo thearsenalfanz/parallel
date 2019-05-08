@@ -219,8 +219,9 @@ int main(int argc, char **argv) {
       if(map[row] == myrank)
       {
         printf( "map[%d] = %d of %d\n", row, map[row], myrank, numnodes );
+        printf("[proc %d]  A[%d][%d]/ A[%d][%d] = \n",row,norm, A[row][norm], norm, norm,A[norm][norm] );
         multiplier = A[row][norm] / A[norm][norm];
-        printf("[proc %d] multiplier = \n",myrank, multiplier);
+        printf("[proc %d] multiplier = %f\n",myrank, multiplier);
       }
     }
     for (row = norm + 1; row < N; row++) 
@@ -229,8 +230,10 @@ int main(int argc, char **argv) {
       {
         for (col = norm; col < N; col++) {
           A[row][col] -= A[norm][col] * multiplier;
+          printf("[proc %d]  A[%d][%d] = \n",myrank, row,col, A[row][col]);
         }
         B[row] -= B[norm] * multiplier;
+        printf("[proc %d]  B[%d] = \n",myrank, B[row]);
       }
     }
   }
