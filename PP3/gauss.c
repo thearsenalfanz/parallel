@@ -243,6 +243,7 @@ int main(int argc, char **argv) {
         printf("[proc %d]  B[%d] = %f\n",myrank, row, B[row]);
       }
     }
+    MPI_Barrier(MPI_COMM_WORLD);
 
   }
 
