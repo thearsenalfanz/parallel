@@ -161,6 +161,7 @@ int main(int argc, char **argv) {
   unsigned long long usecstart, usecstop;
   struct tms cputstart, cputstop;  /* CPU times for my processes */
   double startTime, endTime;
+  int myrank, numnodes;
 
   /* Initialize MPI*/
   MPI_Init(&argc, &argv);
