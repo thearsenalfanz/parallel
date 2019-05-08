@@ -18,7 +18,7 @@ int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
 
 /* Matrices and vectors */
-double A[MAXN][MAXN], B[MAXN], C[MAXN], X[MAXN];
+float A[MAXN][MAXN], B[MAXN], C[MAXN], X[MAXN];
 
 /* A * X = B, solve for X */
 
@@ -160,7 +160,7 @@ void print_X() {
   }
 }
 
-void print(double *Y, char *name, int size) {
+void print(float *Y, char *name, int size) {
   int row;
 
   if (N < size) {
@@ -211,8 +211,8 @@ int main(int argc, char **argv) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  MPI_Bcast (&A[0][0],N*N,MPI_FLOAT,0,MPI_COMM_WORLD);
+  MPI_Bcast (B,N,MPI_FLOAT,0,MPI_COMM_WORLD);
 
   map = calloc(N,sizeof(int));
 
@@ -240,8 +240,8 @@ int main(int argc, char **argv) {
   for(norm = 0; norm < N; norm++)
   {
     /* parallelize */
-    MPI_Bcast (&A[norm][norm], N-norm, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
-    MPI_Bcast (&B[norm], 1, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
+    MPI_Bcast (&A[norm][norm], N-norm, MPI_FLOAT, map[norm], MPI_COMM_WORLD);
+    MPI_Bcast (&B[norm], 1, MPI_FLOAT, map[norm], MPI_COMM_WORLD);
     for(row = norm+1; row < N; row++) 
     {
       if(map[row] == myrank)

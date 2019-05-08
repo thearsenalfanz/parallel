@@ -111,7 +111,7 @@ void parameters(int argc, char **argv, int myrank) {
 }
 
 // /* Initialize A and B (and X to 0.0s) */
-// void initialize_inputs(double **A, double *B) {
+// void initialize_inputs(float **A, float *B) {
 //   int row, col;
 
 //   printf("\nInitializing...\n");
@@ -127,14 +127,14 @@ void parameters(int argc, char **argv, int myrank) {
 // }
 
 /* Print input matrices */
-void print_inputs(double **A, double *B) {
+void print_inputs(float *A, float *B) {
   int row, col;
 
   if (N < 10) {
     printf("\nA =\n\t");
     for (row = 0; row < N; row++) {
       for (col = 0; col < N; col++) {
-  printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
+  printf("%5.2f%s", A[col+N*row], (col < N-1) ? ", " : ";\n\t");
       }
     }
     printf("\nB = [");
@@ -144,7 +144,7 @@ void print_inputs(double **A, double *B) {
   }
 }
 
-void print_X(double *X) {
+void print_X(float *X) {
   int row;
 
   if (N < 10) {
@@ -155,7 +155,7 @@ void print_X(double *X) {
   }
 }
 
-void print(double *Y, char *name, int size) {
+void print(float *Y, char *name, int size) {
   int row;
 
   if (N < size) {
@@ -182,8 +182,7 @@ int main(int argc, char **argv) {
   int norm, row, col;  /* Normalization row, and zeroing  element row and col */
   float multiplier; /*multiplier*/
   int *map;
-  int i, len;
-  double *ptr;
+  int i;
 
   /* Initialize MPI*/
   MPI_Init(&argc, &argv);
@@ -196,6 +195,7 @@ int main(int argc, char **argv) {
   /* Process program parameters */
   parameters(argc, argv, myrank);
 
+  A = (float*)malloc(N*N*sizeof(float));
   B = (float*)malloc(N*sizeof(float));
   C = (float*)malloc(N*sizeof(float));
   X = (float*)malloc(N*sizeof(float));
@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
     /* Initialize A and B */
     for (col = 0; col < N; col++) {
       for (row = 0; row < N; row++) {
-        A[row][col] = (float)rand() / 32768.0;
+        A[col+N*row] = (float)rand() / 32768.0;
       }
       B[col] = (float)rand() / 32768.0;
       X[col] = 0.0;
@@ -220,106 +220,97 @@ int main(int argc, char **argv) {
   MPI_Barrier(MPI_COMM_WORLD);
 
 
+  MPI_Bcast (&A[0],N*N,MPI_FLOAT,0,MPI_COMM_WORLD);
+  MPI_Bcast (B,N,MPI_FLOAT,0,MPI_COMM_WORLD);
+
+  map = calloc(N,sizeof(int));
+
+  for(i=0; i<N; i++)
+  {
+    map[i]= i % procs;
+    // printf("[proc %d] %d, %d\n",myrank, i, map[i]);
+  } 
+
+  printf("[proc %d] N = %d\n",myrank, N); 
+
+  MPI_Barrier(MPI_COMM_WORLD);
   if(myrank == 0)
   {
-    printf("&A00 = %p\n", &A[0][0]);
-    printf("*A = %p\n", *A);
-    printf("&A0 = %p\n", &A[0]);
-    printf("A = %p\n", A);
-    printf("&A = %p\n", &A);
+    /* Start Clock */
+    printf("\nStarting clock.\n");
+    // gettimeofday(&etstart, &tzdummy);
+    // etstart2 = times(&cputstart);
+    startTime = MPI_Wtime();
   }
+  MPI_Barrier(MPI_COMM_WORLD);
 
-  // MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  // MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  printf("hello world from %d\n", myrank);
 
-  // map = calloc(N,sizeof(int));
+  /////////////////////////////////////////
 
-  // for(i=0; i<N; i++)
-  // {
-  //   map[i]= i % procs;
-  //   // printf("[proc %d] %d, %d\n",myrank, i, map[i]);
-  // } 
-
-  // printf("[proc %d] N = %d\n",myrank, N); 
-
-  // MPI_Barrier(MPI_COMM_WORLD);
-  // if(myrank == 0)
-  // {
-  //   /* Start Clock */
-  //   printf("\nStarting clock.\n");
-  //   // gettimeofday(&etstart, &tzdummy);
-  //   // etstart2 = times(&cputstart);
-  //   startTime = MPI_Wtime();
-  // }
-  // MPI_Barrier(MPI_COMM_WORLD);
-
-  // printf("hello world from %d\n", myrank);
-
-  ///////////////////////////////////////////
-
-  // /* Gaussian elimination */
-  // for(norm = 0; norm < N; norm++)
-  // {
-  //   /* parallelize */
-  //   MPI_Bcast (&A[norm][norm], N-norm, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
-  //   MPI_Bcast (&B[norm], 1, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
-  //   for(row = norm+1; row < N; row++) 
-  //   {
-  //     if(map[row] == myrank)
-  //     {
-  //       C[row] = A[row][norm]/A[norm][norm];
-  //     }
-  //   }        
-  //   for(row = norm+1; row < N; row++) 
-  //   { 
-  //     if(map[row] == myrank)
-  //     {
-  //       for(col = 0;col < N;col++)
-  //       {
-  //         A[row][col] = A[row][col]-( C[row]*A[norm][col] );
-  //       }
-  //       B[row] = B[row]-( C[row]*B[norm] );
-  //     }
-  //   }
-  //   MPI_Barrier(MPI_COMM_WORLD);
-  // }
-  // MPI_Barrier(MPI_COMM_WORLD);
+  /* Gaussian elimination */
+  for(norm = 0; norm < N; norm++)
+  {
+    /* parallelize */
+    MPI_Bcast (&A[norm][norm], N-norm, MPI_FLOAT, map[norm], MPI_COMM_WORLD);
+    MPI_Bcast (&B[norm], 1, MPI_FLOAT, map[norm], MPI_COMM_WORLD);
+    for(row = norm+1; row < N; row++) 
+    {
+      if(map[row] == myrank)
+      {
+        C[row] = A[row][norm]/A[norm][norm];
+      }
+    }        
+    for(row = norm+1; row < N; row++) 
+    { 
+      if(map[row] == myrank)
+      {
+        for(col = 0;col < N;col++)
+        {
+          A[row][col] = A[row][col]-( C[row]*A[norm][col] );
+        }
+        B[row] = B[row]-( C[row]*B[norm] );
+      }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
   
-  //  (Diagonal elements are not normalized to 1.  This is treated in back
-  //  * substitution.)
+   (Diagonal elements are not normalized to 1.  This is treated in back
+   * substitution.)
    
-  // /* Back substitution */
-  // if(myrank == 0)
-  // {
-  //   for (row = N - 1; row >= 0; row--) {
-  //     X[row] = B[row];
-  //     for (col = N-1; col > row; col--) {
-  //       X[row] -= A[row][col] * X[col];
-  //     }
-  //     X[row] /= A[row][row];
-  //   }
-  // }
+  /* Back substitution */
+  if(myrank == 0)
+  {
+    for (row = N - 1; row >= 0; row--) {
+      X[row] = B[row];
+      for (col = N-1; col > row; col--) {
+        X[row] -= A[row][col] * X[col];
+      }
+      X[row] /= A[row][row];
+    }
+  }
 
-  // //////////////////////////////////////////
+  //////////////////////////////////////////
 
-  // if(myrank==0)
-  // {
-  //   /* Stop Clock */
-  //   // gettimeofday(&etstop, &tzdummy);
-  //   // etstop2 = times(&cputstop);
-  //   // printf("Stopped clock.\n");
-  //   // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
-  //   // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
-  //   endTime = MPI_Wtime();
+  if(myrank==0)
+  {
+    /* Stop Clock */
+    // gettimeofday(&etstop, &tzdummy);
+    // etstop2 = times(&cputstop);
+    // printf("Stopped clock.\n");
+    // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
+    // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
+    endTime = MPI_Wtime();
     
-  //   /* Display output */
-  //   print_X(X);
+    /* Display output */
+    print_X(X);
 
     
-  //   printf("Elapsed time %f\n", endTime-startTime);
-  //   printf("--------------------------------------------\n");
-  // }
+    printf("Elapsed time %f\n", endTime-startTime);
+    printf("--------------------------------------------\n");
+  }
 
   MPI_Finalize();
   return 0;
