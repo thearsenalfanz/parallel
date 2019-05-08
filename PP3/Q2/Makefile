@@ -1,30 +1,34 @@
 CC = mpicc
-EXE0 = a
-EXE1 = b
-
-# mpirun -np 1 -hostfile hostfile -pernode ./a.exe 2000
-# mpirun -np 2 -hostfile hostfile -pernode ./a.exe 2000
-# mpirun -np 4 -hostfile hostfile -pernode ./a.exe 2000
-# mpirun -np 8 -hostfile hostfile -pernode ./a.exe 2000
-# mpirun -np 16 -hostfile hostfile -npernode 2 ./a.exe 2000
-# mpirun -np 32 -hostfile hostfile -npernode 4 ./a.exe 2000
-
-# mpirun -np 1 -hostfile hostfile -pernode ./b.exe 2000
-# mpirun -np 2 -hostfile hostfile -pernode ./b.exe 2000
-# mpirun -np 4 -hostfile hostfile -pernode ./b.exe 2000
-# mpirun -np 8 -hostfile hostfile -pernode ./b.exe 2000
-# mpirun -np 16 -hostfile hostfile -npernode 2 ./b.exe 2000
-# mpirun -np 32 -hostfile hostfile -npernode 4 ./b.exe 2000
+EXE0 = gauss_serial
+EXE1 = a
+EXE2 = b
 
 $(EXE0): $(EXE0).exe
-	./$< -N 400 -T 1
-	./$< -N 400 -T 2
-	./$< -N 400 -T 4
-	./$< -N 400 -T 8
-%.exe : %.c
-	$(CC) -o $@ $^
+	mpirun -np 1 -hostfile hostfile -pernode ./$< 4 2
 
-# all: $(EXE0) $(EXE1) $(EXE2)
+
+$(EXE1): $(EXE1).exe
+	mpirun -np 1 -hostfile hostfile -pernode ./$< 2000 1 0
+	mpirun -np 2 -hostfile hostfile -pernode ./$< 2000 2 0
+	mpirun -np 4 -hostfile hostfile -pernode ./$< 2000 4 0
+	mpirun -np 8 -hostfile hostfile -pernode ./$< 2000 8 0
+	mpirun -np 16 -hostfile hostfile -npernode 2 ./$< 2000 16 0
+	mpirun -np 32 -hostfile hostfile -npernode 4 ./$< 2000 32 0
+
+$(EXE2): $(EXE2).exe
+	mpirun -np 1 -hostfile hostfile -pernode ./$< 2000 1 0
+	mpirun -np 2 -hostfile hostfile -pernode ./$< 2000 2 0
+	mpirun -np 4 -hostfile hostfile -pernode ./$< 2000 4 0
+	mpirun -np 8 -hostfile hostfile -pernode ./$< 2000 8 0
+	mpirun -np 16 -hostfile hostfile -npernode 2 ./$< 2000 16 0
+	mpirun -np 32 -hostfile hostfile -npernode 4 ./$< 2000 32 0
+	
+%.exe : %.c
+	$(CC) -o $@ $^ -lm
+
+all: $(EXE0) $(EXE1) $(EXE2)
 
 clean:
-	rm -f *.exe 
+	rm -f *.exe
+
+.PHONY: all $(EXE0) $(EXE1) $(EXE2) clean
