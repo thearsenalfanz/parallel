@@ -18,7 +18,7 @@ int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
 
 /* Matrices and vectors */
-volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
+double A[MAXN][MAXN], B[MAXN], X[MAXN];
 /* A * X = B, solve for X */
 
 /* junk */
@@ -26,9 +26,9 @@ volatile float A[MAXN][MAXN], B[MAXN], X[MAXN];
 
 /* Prototype */
 void gauss();  /* The function you will provide.
-		* It is this routine that is timed.
-		* It is called only on the parent.
-		*/
+    * It is this routine that is timed.
+    * It is called only on the parent.
+    */
 
 /* returns a seed for srand based on the time */
 unsigned int time_seed() {
@@ -70,15 +70,15 @@ void parameters(int argc, char **argv) {
     }
     else {
       if (argc == 4) {
-	seed = atoi(argv[3]);
-	srand(seed);
-	printf("Random seed = %i\n", seed);
+  seed = atoi(argv[3]);
+  srand(seed);
+  printf("Random seed = %i\n", seed);
       }
       else {
-	printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
-	       argv[0]);
-	printf("       %s submit\n", argv[0]);
-	exit(0);
+  printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
+         argv[0]);
+  printf("       %s submit\n", argv[0]);
+  exit(0);
       }
     }
   }
@@ -96,7 +96,7 @@ void parameters(int argc, char **argv) {
     }
     if (procs > m_get_numprocs()) {
       printf("Warning: %i processors requested; only %i available.\n",
-	     procs, m_get_numprocs());
+       procs, m_get_numprocs());
       procs = m_get_numprocs();
     }
   }
@@ -132,7 +132,7 @@ void print_inputs() {
     printf("\nA =\n\t");
     for (row = 0; row < N; row++) {
       for (col = 0; col < N; col++) {
-	printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
+  printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
       }
     }
     printf("\nB = [");
@@ -190,8 +190,11 @@ int main(int argc, char **argv) {
 
   ///////////////////////////////////////////
 
+  MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);    
+
   /* Gaussian Elimination */
-  gauss();
+  gauss(myrank);
 
   //////////////////////////////////////////
 
@@ -220,23 +223,43 @@ int main(int argc, char **argv) {
 
 /* ------------------ Above Was Provided --------------------- */
 
-void gauss() {
+void gauss(int myrank) {
   int norm, row, col;  /* Normalization row, and zeroing  element row and col */
   int tid; /*thread id*/
   float multiplier; /*multiplier*/
+  int i;
+  int *map;
+
+  map = calloc(N,sizeof(int));
+
+  for(i=0; i<N; i++)
+  {
+    map[i]= i % procs;
+  } 
+
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
 
     /* parallelize */
-    for (row = norm + 1; row < N; row++) {
-      // tid = omp_get_thread_num();
-      // printf("from thread = %d\n", tid);
-      multiplier = A[row][norm] / A[norm][norm];
-      for (col = norm; col < N; col++) {
-        A[row][col] -= A[norm][col] * multiplier;
+    MPI_Bcast (&A[norm][norm], N-norm, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
+    MPI_Bcast (&B[norm], 1 , MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
+    for (row = norm + 1; row < N; row++) 
+    {
+      if(map[row] == myrank)
+      {
+        multiplier = A[row][norm] / A[norm][norm];
       }
-      B[row] -= B[norm] * multiplier;
+    }
+    for (row = norm + 1; row < N; row++) 
+    {
+      if(map[row] == myrank)
+      {
+        for (col = norm; col < N; col++) {
+          A[row][col] -= A[norm][col] * multiplier;
+        }
+        B[row] -= B[norm] * multiplier;
+      }
     }
   }
 
@@ -245,11 +268,15 @@ void gauss() {
    * substitution.)
    */
   /* Back substitution */
-  for (row = N - 1; row >= 0; row--) {
-    X[row] = B[row];
-    for (col = N-1; col > row; col--) {
-      X[row] -= A[row][col] * X[col];
+  if(myrank == 0)
+  {
+    for (row = N - 1; row >= 0; row--) {
+      X[row] = B[row];
+      for (col = N-1; col > row; col--) {
+        X[row] -= A[row][col] * X[col];
+      }
+      X[row] /= A[row][row];
     }
-    X[row] /= A[row][row];
   }
+
 }
