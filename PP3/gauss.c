@@ -203,14 +203,14 @@ int main(int argc, char **argv) {
     startTime = MPI_Wtime();
   }
 
+  MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  
   MPI_Barrier(MPI_COMM_WORLD);
 
   printf("hello world from %d\n", myrank);
 
   ///////////////////////////////////////////
-
-  MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
