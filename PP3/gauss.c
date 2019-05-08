@@ -155,13 +155,18 @@ void print_X() {
 
 int main(int argc, char **argv) {
   /* Timing variables */
-  struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
-  struct timezone tzdummy;
-  clock_t etstart2, etstop2;  /* Elapsed times using times() */
-  unsigned long long usecstart, usecstop;
-  struct tms cputstart, cputstop;  /* CPU times for my processes */
+  // struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
+  // struct timezone tzdummy;
+  // clock_t etstart2, etstop2;  /* Elapsed times using times() */
+  // unsigned long long usecstart, usecstop;
+  // struct tms cputstart, cputstop;  /* CPU times for my processes */
   double startTime, endTime;
   int myrank, numnodes;
+
+  int norm, row, col;  /* Normalization row, and zeroing  element row and col */
+  float multiplier; /*multiplier*/
+  int i;
+  int *map;
 
   /* Initialize MPI*/
   MPI_Init(&argc, &argv);
@@ -182,59 +187,24 @@ int main(int argc, char **argv) {
     print_inputs();
 
     /* Start Clock */
-    // printf("\nStarting clock.\n");
+    printf("\nStarting clock.\n");
     // gettimeofday(&etstart, &tzdummy);
     // etstart2 = times(&cputstart);
     startTime = MPI_Wtime();
-  }
+    }
 
   ///////////////////////////////////////////
 
   MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);    
-
-  /* Gaussian Elimination */
-  gauss(myrank);
-
-  //////////////////////////////////////////
-
-  if(myrank==0)
-  {
-    /* Stop Clock */
-    // gettimeofday(&etstop, &tzdummy);
-    // etstop2 = times(&cputstop);
-    // printf("Stopped clock.\n");
-    // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
-    // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
-    endTime = MPI_Wtime();
-    
-    /* Display output */
-    print_X();
-
-    
-    printf("Elapsed time %f\n", endTime-startTime);
-    printf("--------------------------------------------\n");
-  }
-
-  MPI_Finalize();
-  return 0;
-
-}
-
-/* ------------------ Above Was Provided --------------------- */
-
-void gauss(int myrank) {
-  int norm, row, col;  /* Normalization row, and zeroing  element row and col */
-  int tid; /*thread id*/
-  float multiplier; /*multiplier*/
-  int i;
-  int *map;
+  MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
   map = calloc(N,sizeof(int));
 
   for(i=0; i<N; i++)
   {
     map[i]= i % procs;
+    if(myrank == 0)
+      printf("%d, %d\n",i, map[i]);
   } 
 
 
@@ -248,7 +218,9 @@ void gauss(int myrank) {
     {
       if(map[row] == myrank)
       {
+        printf( "map[%d] = %d of %d\n", row, map[row], myrank, numnodes );
         multiplier = A[row][norm] / A[norm][norm];
+        printf("[proc %d] multiplier = \n",myrank, multiplier);
       }
     }
     for (row = norm + 1; row < N; row++) 
@@ -279,4 +251,28 @@ void gauss(int myrank) {
     }
   }
 
+  //////////////////////////////////////////
+
+  if(myrank==0)
+  {
+    /* Stop Clock */
+    // gettimeofday(&etstop, &tzdummy);
+    // etstop2 = times(&cputstop);
+    // printf("Stopped clock.\n");
+    // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
+    // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
+    endTime = MPI_Wtime();
+    
+    /* Display output */
+    print_X();
+
+    
+    printf("Elapsed time %f\n", endTime-startTime);
+    printf("--------------------------------------------\n");
+  }
+
+  MPI_Finalize();
+  return 0;
+
 }
+
