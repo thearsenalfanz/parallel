@@ -221,7 +221,17 @@ int main(int argc, char **argv) {
     print_inputs(A,B);
   }
 
-  // MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+
+  if(myrank == 0)
+  {
+    printf("&A00 = %p\n", &A[0][0]);
+    printf("*A = %p\n", *A);
+    printf("&A0 = %p\n", &A[0]);
+    printf("A = %p\n", A);
+    printf("&A = %p\n", &A);
+  }
 
   // MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
   // MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -249,7 +259,7 @@ int main(int argc, char **argv) {
 
   // printf("hello world from %d\n", myrank);
 
-  // ///////////////////////////////////////////
+  ///////////////////////////////////////////
 
   // /* Gaussian elimination */
   // for(norm = 0; norm < N; norm++)
@@ -280,9 +290,9 @@ int main(int argc, char **argv) {
   // MPI_Barrier(MPI_COMM_WORLD);
 
   
-  // /* (Diagonal elements are not normalized to 1.  This is treated in back
+  //  (Diagonal elements are not normalized to 1.  This is treated in back
   //  * substitution.)
-  //  */
+   
   // /* Back substitution */
   // if(myrank == 0)
   // {
