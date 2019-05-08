@@ -175,6 +175,16 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &numnodes);
 
   //////////////////////////////////////////////
+
+  map = calloc(N,sizeof(int));
+
+  for(i=0; i<N; i++)
+  {
+    map[i]= i % procs;
+    if(myrank == 0)
+      printf("%d, %d\n",i, map[i]);
+  } 
+
   if(myrank==0)
   {
     /* Process program parameters */
@@ -201,16 +211,6 @@ int main(int argc, char **argv) {
 
   MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
-
-  map = calloc(N,sizeof(int));
-
-  for(i=0; i<N; i++)
-  {
-    map[i]= i % procs;
-    if(myrank == 0)
-      printf("%d, %d\n",i, map[i]);
-  } 
-
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
