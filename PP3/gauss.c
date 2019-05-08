@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
     startTime = MPI_Wtime();
   }
 
-  MPI_Barrier(MPI_COMM_WORLD,ierror);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   printf("hello world from %d\n", myrank);
 
