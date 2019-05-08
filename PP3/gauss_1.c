@@ -215,10 +215,8 @@ int main(int argc, char **argv) {
   for(i=0; i<N; i++)
   {
     map[i]= i % procs;
-    printf("[proc %d] %d, %d\n",myrank, i, map[i]);
   } 
 
-  printf("[proc %d] N = %d\n",myrank, N); 
 
   MPI_Barrier(MPI_COMM_WORLD);
   if(myrank == 0)
@@ -231,7 +229,6 @@ int main(int argc, char **argv) {
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
-  printf("hello world from %d\n", myrank);
 
   ///////////////////////////////////////////
 
