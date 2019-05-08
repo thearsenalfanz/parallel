@@ -181,8 +181,7 @@ int main(int argc, char **argv) {
   for(i=0; i<N; i++)
   {
     map[i]= i % procs;
-    if(myrank == 0)
-      printf("%d, %d\n",i, map[i]);
+    printf("[proc %d] %d, %d\n",myrank, i, map[i]);
   } 
 
   if(myrank==0)
@@ -205,7 +204,7 @@ int main(int argc, char **argv) {
 
   MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  
+
   MPI_Barrier(MPI_COMM_WORLD);
 
   printf("hello world from %d\n", myrank);
