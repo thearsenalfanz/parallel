@@ -12,7 +12,7 @@
 #define TAG 13
 
 /* Program Parameters */
-#define MAXN 4  /* Max value of N */
+#define MAXN 2000 /* Max value of N */
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
