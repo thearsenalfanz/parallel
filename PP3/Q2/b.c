@@ -209,11 +209,14 @@ int main(int argc, char **argv) {
     print_inputs();
   }
 
+  /* wait until processor rank 0 finishes initializing input */
   MPI_Barrier(MPI_COMM_WORLD);
 
+  /* broadcast the data it needs */
   MPI_Bcast (&A[0][0],N*N,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast (B,N,MPI_FLOAT,0,MPI_COMM_WORLD);
 
+  /* assign rows to each process */
   map = calloc(N,sizeof(int));
 
   for(i=0; i<N; i++)
@@ -221,18 +224,16 @@ int main(int argc, char **argv) {
     map[i]= i % procs;
   } 
 
-
   MPI_Barrier(MPI_COMM_WORLD);
+
+  /* Start Clock */
   if(myrank == 0)
   {
-    /* Start Clock */
     printf("\nStarting clock.\n");
-    // gettimeofday(&etstart, &tzdummy);
-    // etstart2 = times(&cputstart);
     startTime = MPI_Wtime();
   }
-  MPI_Barrier(MPI_COMM_WORLD);
 
+  MPI_Barrier(MPI_COMM_WORLD);
 
   ///////////////////////////////////////////
 
@@ -240,6 +241,7 @@ int main(int argc, char **argv) {
   for(norm = 0; norm < N; norm++)
   {
     /* parallelize */
+    /* broadcast the calculated data to others */
     MPI_Bcast (&A[norm][norm], N-norm, MPI_FLOAT, map[norm], MPI_COMM_WORLD);
     MPI_Bcast (&B[norm], 1, MPI_FLOAT, map[norm], MPI_COMM_WORLD);
     for(row = norm+1; row < N; row++) 
@@ -260,15 +262,15 @@ int main(int argc, char **argv) {
         B[row] = B[row]-( C[row]*B[norm] );
       }
     }
+    /* ensure synchronization*/
     MPI_Barrier(MPI_COMM_WORLD);
   }
+  /* make sure everyone is done */
   MPI_Barrier(MPI_COMM_WORLD);
 
   
-  /* (Diagonal elements are not normalized to 1.  This is treated in back
-   * substitution.)
-   */
-  /* Back substitution */
+  /* (Diagonal elements are not normalized to 1.  This is treated in back substitution.) */
+  /* Back substitution is done serially by processor with rank 0*/
   if(myrank == 0)
   {
     for (row = N - 1; row >= 0; row--) {
@@ -282,14 +284,9 @@ int main(int argc, char **argv) {
 
   //////////////////////////////////////////
 
+  /* Stop Clock */
   if(myrank==0)
   {
-    /* Stop Clock */
-    // gettimeofday(&etstop, &tzdummy);
-    // etstop2 = times(&cputstop);
-    // printf("Stopped clock.\n");
-    // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
-    // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
     endTime = MPI_Wtime();
     
     /* Display output */
