@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
           printf("[proc %d]  A[%d][%d] = %f\n",myrank, row,col, A[row][col]);
         }
         B[row] -= B[norm] * multiplier;
-        printf("[proc %d]  B[%d] = %f\n",myrank, B[row]);
+        printf("[proc %d]  B[%d] = %f\n",myrank, row, B[row]);
       }
     }
   }
