@@ -12,10 +12,13 @@
 #define TAG 13
 
 /* Program Parameters */
-#define MAXN 2000  /* Max value of N */
+#define MAXN 4  /* Max value of N */
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
+
+/* Matrices and vectors */
+double A[MAXN][MAXN], B[MAXN], C[MAXN], X[MAXN];
 
 /* A * X = B, solve for X */
 
@@ -50,7 +53,7 @@ int m_get_numprocs()
 }
 
 /* Set the program parameters from the command-line arguments */
-void parameters(int argc, char **argv, int myrank) {
+void parameters(int argc, char **argv) {
   int submit = 0;  /* = 1 if submission parameters should be used */
   int seed = 0;  /* Random seed */
   char uid[L_cuserid + 2]; /*User name */
@@ -100,34 +103,32 @@ void parameters(int argc, char **argv, int myrank) {
   }
 
   /* Print parameters */
-  if(myrank == 0)
-  {
-    printf("\nMatrix dimension N = %i.\n", N);
-    printf("Number of processors = %i.\n", procs);
-  }
+  printf("\nMatrix dimension N = %i.\n", N);
+  printf("Number of processors = %i.\n", procs);
 
   /* Set number of processors */
   m_set_procs(procs);
 }
 
-// /* Initialize A and B (and X to 0.0s) */
-// void initialize_inputs(double **A, double *B) {
-//   int row, col;
+/* Initialize A and B (and X to 0.0s) */
+void initialize_inputs() {
+  int row, col;
+  int len;
 
-//   printf("\nInitializing...\n");
+  printf("\nInitializing...\n");
 
-//   for (col = 0; col < N; col++) {
-//     for (row = 0; row < N; row++) {
-//       A[row][col] = (float)rand() / 32768.0;
-//     }
-//     B[col] = (float)rand() / 32768.0;
-//     X[col] = 0.0;
-//   }
+  for (col = 0; col < N; col++) {
+    for (row = 0; row < N; row++) {
+      A[row][col] = (float)rand() / 32768.0;
+    }
+    B[col] = (float)rand() / 32768.0;
+    X[col] = 0.0;
+  }
 
-// }
+}
 
 /* Print input matrices */
-void print_inputs(double **A, double *B) {
+void print_inputs() {
   int row, col;
 
   if (N < 10) {
@@ -144,7 +145,7 @@ void print_inputs(double **A, double *B) {
   }
 }
 
-void print_X(double *X) {
+void print_X() {
   int row;
 
   if (N < 10) {
@@ -173,17 +174,15 @@ int main(int argc, char **argv) {
   // clock_t etstart2, etstop2;  /* Elapsed times using times() */
   // unsigned long long usecstart, usecstop;
   // struct tms cputstart, cputstop;  /* CPU times for my processes */
-  
-  /* Matrices and vectors */
-  double **A, *B, *C, *X;
   double startTime, endTime;
   int myrank, numnodes;
 
   int norm, row, col;  /* Normalization row, and zeroing  element row and col */
   float multiplier; /*multiplier*/
   int *map;
-  int i, len;
-  double *ptr;
+
+  // int i,j,k;
+  int i;
 
   /* Initialize MPI*/
   MPI_Init(&argc, &argv);
@@ -194,126 +193,111 @@ int main(int argc, char **argv) {
   //////////////////////////////////////////////
 
   /* Process program parameters */
-  parameters(argc, argv, myrank);
-
-  A = (double**)malloc(N * sizeof(double*));
-  for(i = 0; i < N; i++) 
-    A[i] = (double*)malloc(N * sizeof(double)); 
-
-  B = calloc(N,sizeof(double));
-  C = calloc(N,sizeof(double));
-  X = calloc(N,sizeof(double));
-
+  parameters(argc, argv);
 
   if(myrank==0)
   {
 
     /* Initialize A and B */
-    for (col = 0; col < N; col++) {
-      for (row = 0; row < N; row++) {
-        A[row][col] = (float)rand() / 32768.0;
-      }
-      B[col] = (float)rand() / 32768.0;
-      X[col] = 0.0;
-    }
+    initialize_inputs();
 
     /* Print input matrices */
-    print_inputs(A,B);
+    print_inputs();
   }
 
-  // MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
 
-  // MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  // MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  MPI_Bcast (&A[0][0],N*N,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  MPI_Bcast (B,N,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
-  // map = calloc(N,sizeof(int));
+  map = calloc(N,sizeof(int));
 
-  // for(i=0; i<N; i++)
-  // {
-  //   map[i]= i % procs;
-  //   // printf("[proc %d] %d, %d\n",myrank, i, map[i]);
-  // } 
+  for(i=0; i<N; i++)
+  {
+    map[i]= i % procs;
+    printf("[proc %d] %d, %d\n",myrank, i, map[i]);
+  } 
 
-  // printf("[proc %d] N = %d\n",myrank, N); 
+  printf("[proc %d] N = %d\n",myrank, N); 
 
-  // MPI_Barrier(MPI_COMM_WORLD);
-  // if(myrank == 0)
-  // {
-  //   /* Start Clock */
-  //   printf("\nStarting clock.\n");
-  //   // gettimeofday(&etstart, &tzdummy);
-  //   // etstart2 = times(&cputstart);
-  //   startTime = MPI_Wtime();
-  // }
-  // MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  if(myrank == 0)
+  {
+    /* Start Clock */
+    printf("\nStarting clock.\n");
+    // gettimeofday(&etstart, &tzdummy);
+    // etstart2 = times(&cputstart);
+    startTime = MPI_Wtime();
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
-  // printf("hello world from %d\n", myrank);
+  printf("hello world from %d\n", myrank);
 
-  // ///////////////////////////////////////////
+  ///////////////////////////////////////////
 
-  // /* Gaussian elimination */
-  // for(norm = 0; norm < N; norm++)
-  // {
-  //   /* parallelize */
-  //   MPI_Bcast (&A[norm][norm], N-norm, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
-  //   MPI_Bcast (&B[norm], 1, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
-  //   for(row = norm+1; row < N; row++) 
-  //   {
-  //     if(map[row] == myrank)
-  //     {
-  //       C[row] = A[row][norm]/A[norm][norm];
-  //     }
-  //   }        
-  //   for(row = norm+1; row < N; row++) 
-  //   { 
-  //     if(map[row] == myrank)
-  //     {
-  //       for(col = 0;col < N;col++)
-  //       {
-  //         A[row][col] = A[row][col]-( C[row]*A[norm][col] );
-  //       }
-  //       B[row] = B[row]-( C[row]*B[norm] );
-  //     }
-  //   }
-  //   MPI_Barrier(MPI_COMM_WORLD);
-  // }
-  // MPI_Barrier(MPI_COMM_WORLD);
+  /* Gaussian elimination */
+  for(norm = 0; norm < N; norm++)
+  {
+    /* parallelize */
+    MPI_Bcast (&A[norm][norm], N-norm, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
+    MPI_Bcast (&B[norm], 1, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
+    for(row = norm+1; row < N; row++) 
+    {
+      if(map[row] == myrank)
+      {
+        C[row] = A[row][norm]/A[norm][norm];
+      }
+    }        
+    for(row = norm+1; row < N; row++) 
+    { 
+      if(map[row] == myrank)
+      {
+        for(col = 0;col < N;col++)
+        {
+          A[row][col] = A[row][col]-( C[row]*A[norm][col] );
+        }
+        B[row] = B[row]-( C[row]*B[norm] );
+      }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
   
-  // /* (Diagonal elements are not normalized to 1.  This is treated in back
-  //  * substitution.)
-  //  */
-  // /* Back substitution */
-  // if(myrank == 0)
-  // {
-  //   for (row = N - 1; row >= 0; row--) {
-  //     X[row] = B[row];
-  //     for (col = N-1; col > row; col--) {
-  //       X[row] -= A[row][col] * X[col];
-  //     }
-  //     X[row] /= A[row][row];
-  //   }
-  // }
+  /* (Diagonal elements are not normalized to 1.  This is treated in back
+   * substitution.)
+   */
+  /* Back substitution */
+  if(myrank == 0)
+  {
+    for (row = N - 1; row >= 0; row--) {
+      X[row] = B[row];
+      for (col = N-1; col > row; col--) {
+        X[row] -= A[row][col] * X[col];
+      }
+      X[row] /= A[row][row];
+    }
+  }
 
-  // //////////////////////////////////////////
+  //////////////////////////////////////////
 
-  // if(myrank==0)
-  // {
-  //   /* Stop Clock */
-  //   // gettimeofday(&etstop, &tzdummy);
-  //   // etstop2 = times(&cputstop);
-  //   // printf("Stopped clock.\n");
-  //   // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
-  //   // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
-  //   endTime = MPI_Wtime();
+  if(myrank==0)
+  {
+    /* Stop Clock */
+    // gettimeofday(&etstop, &tzdummy);
+    // etstop2 = times(&cputstop);
+    // printf("Stopped clock.\n");
+    // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
+    // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
+    endTime = MPI_Wtime();
     
-  //   /* Display output */
-  //   print_X(X);
+    /* Display output */
+    print_X();
 
     
-  //   printf("Elapsed time %f\n", endTime-startTime);
-  //   printf("--------------------------------------------\n");
-  // }
+    printf("Elapsed time %f\n", endTime-startTime);
+    printf("--------------------------------------------\n");
+  }
 
   MPI_Finalize();
   return 0;
