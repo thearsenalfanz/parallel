@@ -1,15 +1,24 @@
+/* This file is only for reference. It cannot be compiled successfully, 
+ * because m_set_procs(), m_get_numprocs() is not supported. Please 
+ * write your own parallel version (Pthread, OpenMP, or MPI verion). For 
+ * instance, you should use pthread_create() and pthread_join() to 
+ * write a Pthread version, and use MPI initilization and communication
+ * functions to write a MPI version.
+ */
+
+/* Demostration code - Gaussian elimination without pivoting.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <sys/types.h>
 #include <sys/times.h>
 #include <sys/time.h>
-#include <string.h>
 #include <limits.h>
+// #include <ulocks.h>
+// #include <task.h>
 #include <time.h>
-#include <mpi.h>
-
-#define TAG 13
 
 /* Program Parameters */
 #define MAXN 2000  /* Max value of N */
@@ -65,7 +74,7 @@ void parameters(int argc, char **argv) {
       submit = 1;
       N = 4;
       procs = 2;
-      // printf("\nSubmission run for \"%s\".\n", cuserid(uid));
+      printf("\nSubmission run for \"%s\".\n", cuserid(uid));
       srand(randm());
     }
     else {
@@ -153,97 +162,93 @@ void print_X() {
   }
 }
 
-int main(int argc, char **argv) {
+void main(int argc, char **argv) {
   /* Timing variables */
   struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
   struct timezone tzdummy;
   clock_t etstart2, etstop2;  /* Elapsed times using times() */
   unsigned long long usecstart, usecstop;
   struct tms cputstart, cputstop;  /* CPU times for my processes */
-  double startTime, endTime;
-  int myrank, numnodes;
 
-  /* Initialize MPI*/
-  MPI_Init(&argc, &argv);
-  
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-  MPI_Comm_size(MPI_COMM_WORLD, &numnodes);
+  /* Process program parameters */
+  parameters(argc, argv);
 
-  //////////////////////////////////////////////
-  if(myrank==0)
-  {
-    /* Process program parameters */
-    parameters(argc, argv);
+  /* Initialize A and B */
+  initialize_inputs();
 
-    /* Initialize A and B */
-    initialize_inputs();
+  /* Print input matrices */
+  print_inputs();
 
-    /* Print input matrices */
-    print_inputs();
-
-    /* Start Clock */
-    // printf("\nStarting clock.\n");
-    // gettimeofday(&etstart, &tzdummy);
-    // etstart2 = times(&cputstart);
-    startTime = MPI_Wtime();
-  }
-
-  ///////////////////////////////////////////
+  /* Start Clock */
+  printf("\nStarting clock.\n");
+  gettimeofday(&etstart, &tzdummy);
+  etstart2 = times(&cputstart);
 
   /* Gaussian Elimination */
   gauss();
 
-  //////////////////////////////////////////
+  /* Stop Clock */
+  gettimeofday(&etstop, &tzdummy);
+  etstop2 = times(&cputstop);
+  printf("Stopped clock.\n");
+  usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
+  usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
 
-  if(myrank==0)
-  {
-    /* Stop Clock */
-    // gettimeofday(&etstop, &tzdummy);
-    // etstop2 = times(&cputstop);
-    // printf("Stopped clock.\n");
-    // usecstart = (unsigned long long)etstart.tv_sec * 1000000 + etstart.tv_usec;
-    // usecstop = (unsigned long long)etstop.tv_sec * 1000000 + etstop.tv_usec;
-    endTime = MPI_Wtime();
-    
-    /* Display output */
-    print_X();
+  /* Display output */
+  print_X();
 
-    
-    printf("Elapsed time %f\n", endTime-startTime);
-    printf("--------------------------------------------\n");
-  }
-
-  MPI_Finalize();
-  return 0;
+  /* Display timing results */
+  printf("\nElapsed time = %g ms.\n",
+	 (float)(usecstop - usecstart)/(float)1000);
+  /*printf("               (%g ms according to times())\n",
+   *       (etstop2 - etstart2) / (float)CLOCKS_PER_SEC * 1000);
+   */
+  printf("(CPU times are accurate to the nearest %g ms)\n",
+	 1.0/(float)CLOCKS_PER_SEC * 1000.0);
+  printf("My total CPU time for parent = %g ms.\n",
+	 (float)( (cputstop.tms_utime + cputstop.tms_stime) -
+		  (cputstart.tms_utime + cputstart.tms_stime) ) /
+	 (float)CLOCKS_PER_SEC * 1000);
+  printf("My system CPU time for parent = %g ms.\n",
+	 (float)(cputstop.tms_stime - cputstart.tms_stime) /
+	 (float)CLOCKS_PER_SEC * 1000);
+  printf("My total CPU time for child processes = %g ms.\n",
+	 (float)( (cputstop.tms_cutime + cputstop.tms_cstime) -
+		  (cputstart.tms_cutime + cputstart.tms_cstime) ) /
+	 (float)CLOCKS_PER_SEC * 1000);
+      /* Contrary to the man pages, this appears not to include the parent */
+  printf("--------------------------------------------\n");
 
 }
 
 /* ------------------ Above Was Provided --------------------- */
 
+/****** You will replace this routine with your own parallel version *******/
+/* Provided global variables are MAXN, N, procs, A[][], B[], and X[],
+ * defined in the beginning of this code.  X[] is initialized to zeros.
+ */
 void gauss() {
-  int norm, row, col;  /* Normalization row, and zeroing  element row and col */
-  int tid; /*thread id*/
-  float multiplier; /*multiplier*/
+  int norm, row, col;  /* Normalization row, and zeroing
+			* element row and col */
+  float multiplier;
+
+  printf("Computing Serially.\n");
 
   /* Gaussian elimination */
   for (norm = 0; norm < N - 1; norm++) {
-
-    /* parallelize */
     for (row = norm + 1; row < N; row++) {
-      // tid = omp_get_thread_num();
-      // printf("from thread = %d\n", tid);
       multiplier = A[row][norm] / A[norm][norm];
       for (col = norm; col < N; col++) {
-        A[row][col] -= A[norm][col] * multiplier;
+	A[row][col] -= A[norm][col] * multiplier;
       }
       B[row] -= B[norm] * multiplier;
     }
   }
-
-  
   /* (Diagonal elements are not normalized to 1.  This is treated in back
    * substitution.)
    */
+
+
   /* Back substitution */
   for (row = N - 1; row >= 0; row--) {
     X[row] = B[row];
