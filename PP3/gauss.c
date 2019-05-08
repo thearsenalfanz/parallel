@@ -12,7 +12,7 @@
 #define TAG 13
 
 /* Program Parameters */
-#define MAXN 8  /* Max value of N */
+#define MAXN 4  /* Max value of N */
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
@@ -181,7 +181,8 @@ int main(int argc, char **argv) {
   float multiplier; /*multiplier*/
   int *map;
 
-  int i,j,k;
+  // int i,j,k;
+  int i;
 
   /* Initialize MPI*/
   MPI_Init(&argc, &argv);
@@ -264,28 +265,28 @@ int main(int argc, char **argv) {
   // }
   // MPI_Barrier(MPI_COMM_WORLD);
 
-  /* Gaussian elimination */
-  for(k=0;k<N;k++)
+
+  for(norm = 0; norm < N; norm++)
   {
-      /* parallelize */
-    MPI_Bcast (&A[k][k],N-k,MPI_DOUBLE,map[k],MPI_COMM_WORLD);
-    MPI_Bcast (&B[k],1,MPI_DOUBLE,map[k],MPI_COMM_WORLD);
-    for(i= k+1; i<N; i++) 
+    /* parallelize */
+    MPI_Bcast (&A[norm][norm], N-norm, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
+    MPI_Bcast (&B[norm], 1, MPI_DOUBLE, map[norm], MPI_COMM_WORLD);
+    for(row = norm+1; row < N; row++) 
     {
-      if(map[i] == myrank)
+      if(map[row] == myrank)
       {
-        C[i]=A[i][k]/A[k][k];
+        C[row] = A[row][norm]/A[norm][norm];
       }
-    }               
-    for(i= k+1; i<N; i++) 
-    {       
-      if(map[i] == myrank)
+    }        
+    for(row = norm+1; row < N; row++) 
+    { 
+      if(map[row] == myrank)
       {
-        for(j=0;j<N;j++)
+        for(col = 0;col < N;col++)
         {
-          A[i][j]=A[i][j]-( C[i]*A[k][j] );
+          A[row][col] = A[row][col]-( C[row]*A[norm][col] );
         }
-        B[i]=B[i]-( C[i]*B[k] );
+        B[row] = B[row]-( C[row]*B[norm] );
       }
     }
     MPI_Barrier(MPI_COMM_WORLD);
