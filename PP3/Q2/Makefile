@@ -4,7 +4,7 @@ EXE1 = a
 EXE2 = b
 
 $(EXE0): $(EXE0).exe
-	mpirun -np 1 -hostfile hostfile -pernode ./$< 4 2
+	mpirun -np 1 -hostfile hostfile -pernode ./$< 4 4 0
 
 
 $(EXE1): $(EXE1).exe

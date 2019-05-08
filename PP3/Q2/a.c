@@ -1,7 +1,3 @@
-//Sevgi Arca
-
-/* Gaussian elimination with  MPI.*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>

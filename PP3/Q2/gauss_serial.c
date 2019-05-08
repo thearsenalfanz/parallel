@@ -75,7 +75,7 @@ void parameters(int argc, char **argv) {
       submit = 1;
       N = 4;
       procs = 2;
-      printf("\nSubmission run for \"%s\".\n", cuserid(uid));
+      // printf("\nSubmission run for \"%s\".\n", cuserid(uid));
       srand(randm());
     }
     else {
