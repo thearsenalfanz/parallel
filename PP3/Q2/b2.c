@@ -76,9 +76,10 @@ void parameters(int argc, char **argv, int myrank) {
         // printf("Random seed = %i\n", seed);
       }
       else {
-        printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
-         argv[0]);
-        printf("       %s submit\n", argv[0]);
+        // printf("Usage: %s <matrix_dimension> <num_procs> [random seed]\n",
+        //  argv[0]);
+        // printf("       %s submit\n", argv[0]);
+        printf("exit!\n");
         exit(0);
       }
     }

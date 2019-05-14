@@ -12,7 +12,7 @@
 #define TAG 13
 
 /* Program Parameters */
-#define MAXN 4 /* Max value of N */
+#define MAXN 2000 /* Max value of N */
 #define L_cuserid 8
 int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
@@ -123,7 +123,8 @@ void initialize_inputs() {
 
   for (col = 0; col < N; col++) {
     for (row = 0; row < N; row++) {
-      A[row][col] = (float)rand() / 32768.0;
+      // printf("col = %d, row = %d, col+N*row = %d\n",col, row, col+N*row);
+      A[col+N*row] = (float)rand() / 32768.0;
     }
     B[col] = (float)rand() / 32768.0;
     X[col] = 0.0;
@@ -139,7 +140,7 @@ void print_inputs() {
     printf("\nA =\n\t");
     for (row = 0; row < N; row++) {
       for (col = 0; col < N; col++) {
-  printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
+  printf("%5.2f%s", A[col+N*row], (col < N-1) ? ", " : ";\n\t");
       }
     }
     printf("\nB = [");
@@ -172,12 +173,7 @@ void print(float *Y, char *name, int size) {
 }
 
 int main(int argc, char **argv) {
-  /* Timing variables */
-  // struct timeval etstart, etstop;  /* Elapsed times using gettimeofday() */
-  // struct timezone tzdummy;
-  // clock_t etstart2, etstop2;  /* Elapsed times using times() */
-  // unsigned long long usecstart, usecstop;
-  // struct tms cputstart, cputstop;  /* CPU times for my processes */
+
   double startTime, endTime;
   int myrank, numnodes;
 
@@ -187,6 +183,10 @@ int main(int argc, char **argv) {
   int i;
   MPI_Request request;
   MPI_Status status;
+
+  A = (float*)malloc(N*N*sizeof(float));
+  B = (float*)malloc(N*sizeof(float));
+  X = (float*)malloc(N*sizeof(float));
 
   /* Initialize MPI*/
   MPI_Init(&argc, &argv);
@@ -217,13 +217,13 @@ int main(int argc, char **argv) {
   {
     for(i=0; i<procs; i++)
     {
-      MPI_Isend( &A[0][0], N*N, MPI_FLOAT, i, 0, MPI_COMM_WORLD,&request);
+      MPI_Isend( &A[0], N*N, MPI_FLOAT, i, 0, MPI_COMM_WORLD,&request);
       MPI_Isend( B,N,MPI_FLOAT, i,0, MPI_COMM_WORLD,&request);
     }
   }
   else
   {
-    MPI_Recv( &A[0][0], N*N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv( &A[0], N*N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
     MPI_Recv( B,N,MPI_FLOAT, 0,0, MPI_COMM_WORLD,&status);
   }
 
@@ -260,8 +260,6 @@ int main(int argc, char **argv) {
   float s;
   int first_r, last_r, num_r; // other processors side
 
-  MPI_Request request;
-
   /* buffer array for scatter gather */
   int *first_rA = (int*)malloc(procs*sizeof(int));
   int *first_rB = (int*)malloc(procs*sizeof(int));
@@ -281,8 +279,18 @@ int main(int argc, char **argv) {
   {
 
     /* exchange data*/
-    MPI_Bcast( &A[N*norm], N, MPI_FLOAT, 0, MPI_COMM_WORLD );
-    MPI_Bcast( &B[norm], 1, MPI_FLOAT, 0, MPI_COMM_WORLD );
+    // MPI_Bcast( &A[N*norm], N, MPI_FLOAT, 0, MPI_COMM_WORLD );
+    // MPI_Bcast( &B[norm], 1, MPI_FLOAT, 0, MPI_COMM_WORLD );
+    if (myrank == 0) 
+    {
+      for (i = 1; i < procs; i++) 
+      {
+        printf("i = %d\n",i);
+        /*Send data to other processes*/
+        MPI_Isend(&A[N*norm], N, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &request);
+        MPI_Isend(&B[norm], 1, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &request);
+      }
+    }
 
     /* the rest of the rows*/
     num_remained = N-1 - norm;
@@ -301,7 +309,7 @@ int main(int argc, char **argv) {
 
     if ( myrank == 0 ) { // from 0 to other processors the divided workload is sent
 
-      for (i=1; i < p; i++)
+      for (i=1; i < procs; i++)
       {
         first_r = norm + 1 + ceil( s*i);
         last_r = norm + 1 + floor( s* (i+1) );
@@ -361,9 +369,9 @@ int main(int argc, char **argv) {
     for (row = N - 1; row >= 0; row--) {
       X[row] = B[row];
       for (col = N-1; col > row; col--) {
-        X[row] -= A[row][col] * X[col];
+        X[row] -= A[col+N*row] * X[col];
       }
-      X[row] /= A[row][row];
+      X[row] /= A[col+N*row];
     }
   }
 
@@ -382,6 +390,9 @@ int main(int argc, char **argv) {
     printf("Elapsed time %f\n", endTime-startTime);
     printf("--------------------------------------------\n");
   }
+  // free(A);
+  // free(B);
+  // free(X);
   MPI_Finalize();
 
   return 0;

@@ -209,13 +209,18 @@ int main(int argc, char **argv) {
         print_inputs();
     }
 
+    /*printf("\nProcess number %d of %d says hi\n",
+            myrank+1, p);*/
+
     gauss();
 
-    // if ( myrank == 0 ) {
-    //     print_A();
-    //     print_B();
-    //     print_X();
-    // }
+    if ( myrank == 0 ) {
+
+        /* Print input matrices */
+        print_A();
+        print_B();
+        print_X();
+    }
 
     /* The barrier prevents any process to reach the finalize before the others have finished their communications */
     MPI_Barrier(MPI_COMM_WORLD);
@@ -230,157 +235,179 @@ int main(int argc, char **argv) {
 /* Includes both algorithms */
 void gauss() {
 
+    void gaussElimination();
+    void backSubstitution();
+
+    /* Times */
+    double t1, t2;
+
+    /* Barrier to sync all processes before starting the algorithms */
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    /* Initial time */
+    if ( myrank == SOURCE )
+        t1 = MPI_Wtime();
+
+    /* Gauss Elimination is performed using MPI */
+    gaussElimination();
+
+    /* Back Substitution is performed sequentially */
+    if ( myrank == SOURCE ) {
+        backSubstitution();
+
+        /* Finish time */
+        t2 = MPI_Wtime();
+
+        printf("\nElapsed time: %f miliseconds\n", (t2-t1) * 1000 );
+    }
+    
+}
+
+
+
+/* Guassian Elimination algorithm using MPI */
+void gaussElimination() {
+
     MPI_Status status;
     MPI_Request request;
     int row, col, i, norm;
     float multiplier;
 
-    double starttime, endtime;
-    int *A_first = (int*) malloc ( procs * sizeof(int) );
-    int *num_rows_A = (int*) malloc ( procs * sizeof(int) );
-    int *B_first = (int*) malloc ( procs * sizeof(int) );
-    int *num_rows_B = (int*) malloc ( procs * sizeof(int) );
+  /* Gaussian elimination */
 
-    /* synchronize all process */
-    MPI_Barrier(MPI_COMM_WORLD);
+  int *A_first = (int*) malloc ( procs * sizeof(int) );
+  int *num_rows_A = (int*) malloc ( procs * sizeof(int) );
+  int *B_first = (int*) malloc ( procs * sizeof(int) );
+  int *num_rows_B = (int*) malloc ( procs * sizeof(int) );
+  for ( i = 0; i < procs; i++ ) {
+    A_first[i] = 0;
+    num_rows_A[i] = 0;
+    B_first[i] = 0;
+    num_rows_B[i] = 0;
+  }
 
-    /* start time */
-    if ( myrank == 0 )
-        starttime = MPI_Wtime();
+  /* Gaussian elimination */
+  /* Outer loop. A new column will have all 0s down the [norm] */
+  for (norm = 0; norm < N-1; norm++) {
 
-
-    for ( i = 0; i < procs; i++ ) {
-        A_first[i] = 0;
-        num_rows_A[i] = 0;
-        B_first[i] = 0;
-        num_rows_B[i] = 0;
-    }
-
-    /* Gaussian elimination */
-    /* Outer loop. A new column will have all 0s down the [norm] */
-    for (norm = 0; norm < N-1; norm++) 
+    /* Broadcast values A[norm] and B[norm] */
+    // MPI_Bcast( &A[N*norm], N, MPI_FLOAT, 0, MPI_COMM_WORLD );
+    // MPI_Bcast( &B[norm], 1, MPI_FLOAT, 0, MPI_COMM_WORLD );
+    if(myrank == 0)
     {
-
-        /* Broadcast values A[norm] and B[norm] */
-        // MPI_Bcast( &A[N*norm], N, MPI_FLOAT, 0, MPI_COMM_WORLD );
-        // MPI_Bcast( &B[norm], 1, MPI_FLOAT, 0, MPI_COMM_WORLD );
-        if(myrank == 0)
-        {
-            for(i=0; i<procs; i++)
-            {
-                MPI_Isend( &A[N*norm], N, MPI_FLOAT, i, 0, MPI_COMM_WORLD,&request);
-                MPI_Isend( &B[norm], 1 , MPI_FLOAT, i,0, MPI_COMM_WORLD,&request);
-            }
-        }
-        else
-        {
-            MPI_Recv( &A[N*norm], N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
-            MPI_Recv( &B[norm], 1 ,MPI_FLOAT, 0,0, MPI_COMM_WORLD,&status);
-        }
+      for(i=0; i<procs; i++)
+      {
+        MPI_Isend( &A[N*norm], N, MPI_FLOAT, i, 0, MPI_COMM_WORLD,&request);
+        MPI_Isend( &B[norm], 1 , MPI_FLOAT, i,0, MPI_COMM_WORLD,&request);
+      }
+    }
+    else
+    {
+      MPI_Recv( &A[N*norm], N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+      MPI_Recv( &B[norm], 1 ,MPI_FLOAT, 0,0, MPI_COMM_WORLD,&status);
+    }
 
     /* Test that everyone receives it*/
     // printf("%d : %f\n",myrank, A[0]);
 
 
     /* number of rows to be calculated for each process */
-        int subset = N - 1 - norm;
-        float step = ((float)subset ) / (procs);
-
+    int subset = N - 1 - norm;
+    float step = ((float)subset ) / (procs);
+    
     /* Sets of rows */
-        int first_row = norm + 1 + ceil( step * (myrank) );
-        int last_row = norm + 1 + floor( step * (myrank+1) );
-        if ( last_row >= N ) 
-            last_row = N-1;
-        int t_num_rows = last_row - first_row +1;
+    int first_row = norm + 1 + ceil( step * (myrank) );
+    int last_row = norm + 1 + floor( step * (myrank+1) );
+    if ( last_row >= N ) 
+      last_row = N-1;
+    int t_num_rows = last_row - first_row +1;
 
 
     /* send data from rank 0 to other processes */
 
-        if ( myrank == 0 ) {
-            for ( i = 1; i < procs; i++ ) 
-            {
-            /* Assign data to each process */
-                int first = norm + 1 + ceil( step * (i) );
-                int last = norm + 1 + floor( step * (i+1) );
-                if( last >= N ) 
-                    last = N -1;
-                int num_rows = last - first +1;
+    if ( myrank == 0 ) {
 
-                if ( num_rows < 0 ) 
-                    num_rows = 0;
-                if ( first >= N )
-                {
-                    num_rows = 0; 
-                    first = N-1; 
-                }
+      for ( i = 1; i < procs; i++ ) {
 
-                A_first[i] = first * N;
-                B_first[i] = first;
-                num_rows_A[i] = num_rows * N;
-                num_rows_B[i] = num_rows;
-                MPI_Isend( &A[first * N], N * num_rows, MPI_FLOAT, i,0, MPI_COMM_WORLD, &request);
-                MPI_Isend( &B[first], num_rows, MPI_FLOAT, i,0, MPI_COMM_WORLD, &request);
-            }
+        /* Assign data to each process */
+        int first = norm + 1 + ceil( step * (i) );
+        int last = norm + 1 + floor( step * (i+1) );
+        if( last >= N ) 
+          last = N -1;
+        int num_rows = last - first +1;
 
+        if ( num_rows < 0 ) 
+          num_rows = 0;
+        if ( first >= N )
+        {
+          num_rows = 0; 
+          first = N-1; 
         }
+
+        A_first[i] = first * N;
+        B_first[i] = first;
+        num_rows_A[i] = num_rows * N;
+        num_rows_B[i] = num_rows;
+        MPI_Isend( &A[first * N], N * num_rows, MPI_FLOAT, i,0, MPI_COMM_WORLD, &request);
+        MPI_Isend( &B[first], num_rows, MPI_FLOAT, i,0, MPI_COMM_WORLD, &request);
+      }
+
+    }
     /* Receive */
-        else {
-            if ( t_num_rows > 0  && first_row < N) 
-            {
-                MPI_Recv( &A[first_row * N], N * t_num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
-                MPI_Recv( &B[first_row], t_num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
-            }
+    else {
+      if ( t_num_rows > 0  && first_row < N) 
+      {
+        MPI_Recv( &A[first_row * N], N * t_num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv( &B[first_row], t_num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+        }
+    }
+
+    if ( t_num_rows > 0  && first_row < N) {  
+      for (row = first_row; row <= last_row; row++) {
+
+        multiplier = A[N*row + norm] / A[norm + N*norm];
+        for (col = norm; col < N; col++) {
+          A[col+N*row] -= A[N*norm + col] * multiplier;
         }
 
-        if ( t_num_rows > 0  && first_row < N) {  
-            for (row = first_row; row <= last_row; row++) {
-
-                multiplier = A[N*row + norm] / A[norm + N*norm];
-                for (col = norm; col < N; col++) {
-                    A[col+N*row] -= A[N*norm + col] * multiplier;
-                }
-
-                B[row] -= B[norm] * multiplier;
-            }
-        }
+        B[row] -= B[norm] * multiplier;
+      }
+    }
 
     /* send results*/
 
-        if ( myrank != 0 ) {
-            if ( t_num_rows > 0  && first_row < N) {
-                MPI_Isend( &A[first_row * N], N * t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
-                MPI_Isend( &B[first_row], t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
-            }
-        }
-        else {
-            for ( i = 1; i < procs; i++ ) {
-                if( num_rows_B[i] < 1  || B_first[i] >= N) 
-                    continue;
-                MPI_Recv( &A[ A_first[i] ], num_rows_A[i] , MPI_FLOAT, i,0, MPI_COMM_WORLD, &status );
-                MPI_Recv( &B[ B_first[i] ], num_rows_B[i] , MPI_FLOAT, i,0, MPI_COMM_WORLD, &status );
-            }
-        }
+    if ( myrank != 0 ) {
+      if ( t_num_rows > 0  && first_row < N) {
+        MPI_Isend( &A[first_row * N], N * t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
+        MPI_Isend( &B[first_row], t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
+      }
     }
-
-    /* Back Substitution is performed sequentially */
-    if ( myrank == SOURCE ) {
-            /* Back substitution */
-        for (row = N - 1; row >= 0; row--) {
-            X[row] = B[row];
-
-            for (col = N-1; col > row; col--) {
-                X[row] -= A[N*row+col] * X[col];
-            }
-
-            X[row] /= A[N*row + row];
-        }
-
-        /* Finish time */
-        endtime = MPI_Wtime();
-
-        printf("\nElapsed time: %f \n", (endtime-starttime) );
-        printf("--------------------------------------------\n");
+    else {
+      for ( i = 1; i < procs; i++ ) {
+        if( num_rows_B[i] < 1  || B_first[i] >= N) 
+          continue;
+        MPI_Recv( &A[ A_first[i] ], num_rows_A[i] , MPI_FLOAT, i,0, MPI_COMM_WORLD, &status );
+        MPI_Recv( &B[ B_first[i] ], num_rows_B[i] , MPI_FLOAT, i,0, MPI_COMM_WORLD, &status );
+      }
     }
-
+  }
 }
 
+
+/* Back substitution sequential algorithm */
+void backSubstitution () {
+
+    int norm, row, col;  /* Normalization row, and zeroing
+      * element row and col */
+
+    /* Back substitution */
+    for (row = N - 1; row >= 0; row--) {
+        X[row] = B[row];
+
+        for (col = N-1; col > row; col--) {
+            X[row] -= A[N*row+col] * X[col];
+        }
+        
+        X[row] /= A[N*row + row];
+    }
+}

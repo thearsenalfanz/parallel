@@ -256,23 +256,27 @@ int main(int argc, char **argv) {
   /* Gaussian elimination */
   for(norm = 0; norm < N; norm++)
   {
-    // printf("\n\nnorm = %d\n", norm);
+    printf("\n\nnorm = %d\n", norm);
     /* parallelize */
     for(i=0; i<procs; i++)
     {
       /* from master */
-      if (myrank == 0) {
-        for (i = 1; i < procs; i++) {
-
+      if (myrank == 0) 
+      {
+        for (i = 1; i < procs; i++) 
+        {
+          printf("i = %d\n",i);
           /*Send data to other processes*/
           for (row = norm + 1 + i; row < N; row += procs) {
+            printf("%d sending row %d to %d \n", myrank, row, i);
             MPI_Isend(&A[row], N, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &request);
             MPI_Wait(&request, &status);
             MPI_Isend(&B[row], 1, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &request);
             MPI_Wait(&request, &status);
           }
         }
-        for (row = norm + 1; row < N; row += procs) {
+        for (row = norm + 1; row < N; row += procs) 
+        {
           multiplier = A[row][norm] / A[norm][norm];
           for (col = norm; col < N; col++) {
             A[row][col] -= A[norm][col] * multiplier;
@@ -285,30 +289,37 @@ int main(int argc, char **argv) {
           for (row = norm + 1 + i; row < N; row += procs) {
             MPI_Recv(&A[row], N, MPI_FLOAT, i, 1, MPI_COMM_WORLD, &status);
             MPI_Recv(&B[row], 1, MPI_FLOAT, i, 1, MPI_COMM_WORLD, &status);
+            printf("%d receving row %d from %d\n",myrank, row, i );
           }
         }
       }
       /*Receive data from process rank 0*/
       else 
       {
-        for (row = norm + 1 + myid; row < N; row += procs) {
+        for (row = norm + 1 + myrank; row < N; row += procs) {
           MPI_Recv(&A[row], N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);   
           MPI_Recv(&B[row], 1, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+
+          printf("%d receving row %d from 0\n",myrank, row);
 
           multiplier = A[row][norm] / A[norm][norm];
           for (col = norm; col < N; col++) {
             A[row][col] -= A[norm][col] * multiplier;
           }
           B[row] -= B[norm] * multiplier;
-          /*Send back the results*/
+          /* Send back the results */
           MPI_Isend(&A[row], N, MPI_FLOAT, 0, 1, MPI_COMM_WORLD, &request);
           MPI_Wait(&request, &status);    
           MPI_Isend(&B[row], 1, MPI_FLOAT, 0, 1, MPI_COMM_WORLD, &request);
           MPI_Wait(&request, &status);
+
+          printf("%d finish calculating row %d sent\n", myrank,row);
+
         }
       }
         /* ensure synchronization */
       MPI_Barrier(MPI_COMM_WORLD);
+    }
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
@@ -342,6 +353,7 @@ int main(int argc, char **argv) {
     printf("--------------------------------------------\n");
   }
   MPI_Finalize();
+  exit(0);
 
   return 0;
 

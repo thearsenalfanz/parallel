@@ -123,7 +123,7 @@ void initialize_inputs() {
 
   for (col = 0; col < N; col++) {
     for (row = 0; row < N; row++) {
-      A[row][col] = (float)rand() / 32768.0;
+      A[col+N*row] = (float)rand() / 32768.0;
     }
     B[col] = (float)rand() / 32768.0;
     X[col] = 0.0;
@@ -139,7 +139,7 @@ void print_inputs() {
     printf("\nA =\n\t");
     for (row = 0; row < N; row++) {
       for (col = 0; col < N; col++) {
-  printf("%5.2f%s", A[row][col], (col < N-1) ? ", " : ";\n\t");
+  printf("%5.2f%s", A[col+N*row], (col < N-1) ? ", " : ";\n\t");
       }
     }
     printf("\nB = [");
@@ -217,13 +217,13 @@ int main(int argc, char **argv) {
   {
     for(i=0; i<procs; i++)
     {
-      MPI_Isend( &A[0][0], N*N, MPI_FLOAT, i, 0, MPI_COMM_WORLD,&request);
+      MPI_Isend( &A[0], N*N, MPI_FLOAT, i, 0, MPI_COMM_WORLD,&request);
       MPI_Isend( B,N,MPI_FLOAT, i,0, MPI_COMM_WORLD,&request);
     }
   }
   else
   {
-    MPI_Recv( &A[0][0], N*N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv( &A[0], N*N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
     MPI_Recv( B,N,MPI_FLOAT, 0,0, MPI_COMM_WORLD,&status);
   }
 
@@ -271,12 +271,12 @@ int main(int argc, char **argv) {
   for (norm = 0; norm < N-1; norm++) {
 
     /* Broadcast values A[norm] and B[norm] */
-    MPI_Bcast( &A[N*norm], N, MPI_FLOAT, SOURCE, MPI_COMM_WORLD );
-    MPI_Bcast( &B[norm], 1, MPI_FLOAT, SOURCE, MPI_COMM_WORLD );
+    MPI_Bcast( &A[N*norm], N, MPI_FLOAT, 0, MPI_COMM_WORLD );
+    MPI_Bcast( &B[norm], 1, MPI_FLOAT, 0, MPI_COMM_WORLD );
 
     /* number of rows to be calculated for each process */
     int subset = N - 1 - norm;
-    float step = ((float)subset ) / (p);
+    float step = ((float)subset ) / (procs);
     
     /* Sets of rows */
     int first_row = norm + 1 + ceil( step * (myrank) );
@@ -285,7 +285,7 @@ int main(int argc, char **argv) {
       last_row = N-1;
     int t_num_rows = last_row - first_row +1;
 
-    printf("\nProc %d of %d says in iteration %d that a=%d, b=%d and n=%d\n", myrank+1, p, norm+1,first_row,last_row,number_of_rows) ;
+    printf("\nProc %d of %d says in iteration %d that a=%d, b=%d and n=%d\n", myrank+1, p, norm+1,first_row,last_row,t_num_rows) ;
 
     /* send data from rank 0 to other processes */
 
@@ -319,10 +319,10 @@ int main(int argc, char **argv) {
     }
     /* Receive */
     else {
-      if ( t_num_rows > 0  && first < N) 
+      if ( t_num_rows > 0  && first_row < N) 
       {
-        MPI_Recv( &A[first * N], N * num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
-        MPI_Recv( &B[first], num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv( &A[first_row * N], N * num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv( &B[first_row], num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
         }
     }
 
@@ -341,9 +341,9 @@ int main(int argc, char **argv) {
     /* send results*/
 
     if ( myrank != 0 ) {
-      if ( t_num_rows > 0  && first < N) {
-        MPI_Isend( &A[first * N], N * t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
-        MPI_Isend( &B[first], t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
+      if ( t_num_rows > 0  && first_row < N) {
+        MPI_Isend( &A[first_row * N], N * t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
+        MPI_Isend( &B[first_row], t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
       }
     }
     else {
@@ -364,9 +364,9 @@ int main(int argc, char **argv) {
     for (row = N - 1; row >= 0; row--) {
       X[row] = B[row];
       for (col = N-1; col > row; col--) {
-        X[row] -= A[row][col] * X[col];
+        X[row] -= A[col+N*row] * X[col];
       }
-      X[row] /= A[row][row];
+      X[row] /= A[col+N*row];
     }
   }
 
