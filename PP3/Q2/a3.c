@@ -255,102 +255,105 @@ int main(int argc, char **argv) {
 
   /* Gaussian elimination */
 
-  int first_row, last_row, num_rows; // side 0
-  int num_remained;
-  float s;
-  int first_r, last_r, num_r; // other processors side
-
-  MPI_Request request;
-
-  /* buffer array for scatter gather */
-  int *first_rA = (int*)malloc(procs*sizeof(int));
-  int *first_rB = (int*)malloc(procs*sizeof(int));
-  int *nfirst_rA=(int*)malloc(procs*sizeof(int));
-  int *nfirst_rB=(int*)malloc(procs*sizeof(int));
-
-  /* initialize */
-  for ( i = 0; i < procs; i++ )
-  {
-    first_rA[i] = 0;
-    nfirst_rA[i] = 0;
-    first_rB[i] = 0;
-    nfirst_rB[i] = 0;
+  int *A_first = (int*) malloc ( procs * sizeof(int) );
+  int *num_rows_A = (int*) malloc ( procs * sizeof(int) );
+  int *B_first = (int*) malloc ( procs * sizeof(int) );
+  int *num_rows_B = (int*) malloc ( procs * sizeof(int) );
+  for ( i = 0; i < procs; i++ ) {
+    A_first[i] = 0;
+    num_rows_A[i] = 0;
+    B_first[i] = 0;
+    num_rows_B[i] = 0;
   }
 
-  for (norm = 0; norm < N - 1; norm++)
-  {
+  /* Gaussian elimination */
+  /* Outer loop. A new column will have all 0s down the [norm] */
+  for (norm = 0; norm < N-1; norm++) {
 
-    /* exchange data*/
-    MPI_Bcast( &A[N*norm], N, MPI_FLOAT, 0, MPI_COMM_WORLD );
-    MPI_Bcast( &B[norm], 1, MPI_FLOAT, 0, MPI_COMM_WORLD );
+    /* Broadcast values A[norm] and B[norm] */
+    MPI_Bcast( &A[N*norm], N, MPI_FLOAT, SOURCE, MPI_COMM_WORLD );
+    MPI_Bcast( &B[norm], 1, MPI_FLOAT, SOURCE, MPI_COMM_WORLD );
 
-    /* the rest of the rows*/
-    num_remained = N-1 - norm;
-
-    /* divide for processors */
-    s =((float)num_remained)/procs;
-
-    // get the first and last row to know the limits
-    first_row = norm + 1 + ceil( s * myrank);
-    last_row = norm + 1 + floor( s * (myrank+1));
-
-    if ( last_row >= N )
+    /* number of rows to be calculated for each process */
+    int subset = N - 1 - norm;
+    float step = ((float)subset ) / (p);
+    
+    /* Sets of rows */
+    int first_row = norm + 1 + ceil( step * (myrank) );
+    int last_row = norm + 1 + floor( step * (myrank+1) );
+    if ( last_row >= N ) 
       last_row = N-1;
+    int t_num_rows = last_row - first_row +1;
 
-    num_rows = last_row - first_row +1; // total number of rows
+    printf("\nProc %d of %d says in iteration %d that a=%d, b=%d and n=%d\n", myrank+1, p, norm+1,first_row,last_row,number_of_rows) ;
 
-    if ( myrank == 0 ) { // from 0 to other processors the divided workload is sent
+    /* send data from rank 0 to other processes */
 
-      for (i=1; i < p; i++)
-      {
-        first_r = norm + 1 + ceil( s*i);
-        last_r = norm + 1 + floor( s* (i+1) );
+    if ( myrank == 0 ) {
 
-        if( last_r >= N )
-          last_r = N-1;
+      for ( i = 1; i < p; i++ ) {
 
-        num_r = last_r - first_r +1;
-        if(num_r < 0)
-          num_r=0;
+        /* Assign data to each process */
+        int first = norm + 1 + ceil( step * (i) );
+        int last = norm + 1 + floor( step * (i+1) );
+        if( last >= N ) 
+          last = N -1;
+        int num_rows = last - first +1;
 
-        if(first_r>=N)
+        if ( num_rows < 0 ) 
+          num_rows = 0;
+        if ( first >= N )
         {
-          first_r=N-1;
-          num_r=0;
+          num_rows = 0; 
+          first = N-1; 
         }
 
-        first_rA[i]=first_r*N;
-        nfirst_rA[i]=num_r*N;
-        first_rB[i]=first_r;
-        nfirst_rB[i]=num_r;
+        A_first[i] = first * N;
+        B_first[i] = first;
+        num_rows_A[i] = num_rows * N;
+        num_rows_B[i] = num_rows;
+        MPI_Isend( &A[first * N], N * num_rows, MPI_FLOAT, i,0, MPI_COMM_WORLD, &request);
+        MPI_Isend( &B[first], num_rows, MPI_FLOAT, i,0, MPI_COMM_WORLD, &request);
+      }
+
+    }
+    /* Receive */
+    else {
+      if ( t_num_rows > 0  && first < N) 
+      {
+        MPI_Recv( &A[first * N], N * num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv( &B[first], num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
+        }
+    }
+
+    if ( number_of_rows > 0  && first_row < N) {  
+      for (row = first_row; row <= last_row; row++) {
+
+        multiplier = A[N*row + norm] / A[norm + N*norm];
+        for (col = norm; col < N; col++) {
+          A[col+N*row] -= A[N*norm + col] * multiplier;
+        }
+
+        B[row] -= B[norm] * multiplier;
       }
     }
 
-    /* scatters a buffer in parts to all processes */
+    /* send results*/
 
-    MPI_Scatterv(&A[0], nfirst_rA, first_rA, MPI_FLOAT, &A[first_row*N], N*num_rows, MPI_FLOAT,0, MPI_COMM_WORLD);
-    MPI_Scatterv(&B[0], nfirst_rB, first_rB, MPI_FLOAT, &B[first_row], num_rows, MPI_FLOAT,0, MPI_COMM_WORLD);
-
-    for (row = first_row; row <= last_row; row++) {
-      multiplier = A[N*row + norm] / A[norm + N*norm];
-
-      for (col = norm; col < N; col++) {
-        A[col+N*row] -= A[N*norm + col] * multiplier;
-      }
-      B[row] -= B[norm] * multiplier;
-    }
-
-    /* send results to rank 0 */
-    if ( myrank != 0 ) 
-    { 
-      if ( num_rows > 0  && first_row < N) {
-        MPI_Isend( &A[first_row * N], N * num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD,&request);
-        MPI_Isend( &B[first_row],num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD,&request);
+    if ( myrank != 0 ) {
+      if ( t_num_rows > 0  && first < N) {
+        MPI_Isend( &A[first * N], N * t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
+        MPI_Isend( &B[first], t_num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD, &request);
       }
     }
-    /* Gathers into specified locations from all processes in a group */
-    MPI_Gatherv(&A[first_row* N], N*num_rows, MPI_FLOAT, &A[0],nfirst_rA,first_rA, MPI_FLOAT,0,MPI_COMM_WORLD);
-    MPI_Gatherv(&B[first_row], num_rows, MPI_FLOAT, &B[0],nfirst_rB,first_rB, MPI_FLOAT,0,MPI_COMM_WORLD);
+    else {
+      for ( i = 1; i < procs; i++ ) {
+        if( A_first[i] < 1  || B_first[i] >= N) 
+          continue;
+        MPI_Recv( &A[ A_first[i] ], num_rows_A[i] , MPI_FLOAT, i,0, MPI_COMM_WORLD, &status );
+        MPI_Recv( &B[ B_first[i] ], num_rows_B[i] , MPI_FLOAT, i,0, MPI_COMM_WORLD, &status );
+      }
+    }
   }
 
   

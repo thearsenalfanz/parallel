@@ -18,7 +18,7 @@ int N;  /* Matrix size */
 int procs;  /* Number of processors to use */
 
 /* Matrices and vectors */
-float *A, *B, *X;
+float A[MAXN][MAXN], B[MAXN], C[MAXN], X[MAXN];
 
 /* A * X = B, solve for X */
 
@@ -254,104 +254,63 @@ int main(int argc, char **argv) {
   ///////////////////////////////////////////
 
   /* Gaussian elimination */
-
-  int first_row, last_row, num_rows; // side 0
-  int num_remained;
-  float s;
-  int first_r, last_r, num_r; // other processors side
-
-  MPI_Request request;
-
-  /* buffer array for scatter gather */
-  int *first_rA = (int*)malloc(procs*sizeof(int));
-  int *first_rB = (int*)malloc(procs*sizeof(int));
-  int *nfirst_rA=(int*)malloc(procs*sizeof(int));
-  int *nfirst_rB=(int*)malloc(procs*sizeof(int));
-
-  /* initialize */
-  for ( i = 0; i < procs; i++ )
+  for(norm = 0; norm < N; norm++)
   {
-    first_rA[i] = 0;
-    nfirst_rA[i] = 0;
-    first_rB[i] = 0;
-    nfirst_rB[i] = 0;
-  }
+    // printf("\n\nnorm = %d\n", norm);
+    /* parallelize */
+    for(i=0; i<procs; i++)
+    {
+      /* from master */
+      if (myrank == 0) {
+        for (i = 1; i < procs; i++) {
 
-  for (norm = 0; norm < N - 1; norm++)
-  {
-
-    /* exchange data*/
-    MPI_Bcast( &A[N*norm], N, MPI_FLOAT, 0, MPI_COMM_WORLD );
-    MPI_Bcast( &B[norm], 1, MPI_FLOAT, 0, MPI_COMM_WORLD );
-
-    /* the rest of the rows*/
-    num_remained = N-1 - norm;
-
-    /* divide for processors */
-    s =((float)num_remained)/procs;
-
-    // get the first and last row to know the limits
-    first_row = norm + 1 + ceil( s * myrank);
-    last_row = norm + 1 + floor( s * (myrank+1));
-
-    if ( last_row >= N )
-      last_row = N-1;
-
-    num_rows = last_row - first_row +1; // total number of rows
-
-    if ( myrank == 0 ) { // from 0 to other processors the divided workload is sent
-
-      for (i=1; i < p; i++)
-      {
-        first_r = norm + 1 + ceil( s*i);
-        last_r = norm + 1 + floor( s* (i+1) );
-
-        if( last_r >= N )
-          last_r = N-1;
-
-        num_r = last_r - first_r +1;
-        if(num_r < 0)
-          num_r=0;
-
-        if(first_r>=N)
-        {
-          first_r=N-1;
-          num_r=0;
+          /*Send data to other processes*/
+          for (row = norm + 1 + i; row < N; row += procs) {
+            MPI_Isend(&A[row], N, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &request);
+            MPI_Wait(&request, &status);
+            MPI_Isend(&B[row], 1, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &request);
+            MPI_Wait(&request, &status);
+          }
+        }
+        for (row = norm + 1; row < N; row += procs) {
+          multiplier = A[row][norm] / A[norm][norm];
+          for (col = norm; col < N; col++) {
+            A[row][col] -= A[norm][col] * multiplier;
+          }
+          B[row] -= B[norm] * multiplier;
         }
 
-        first_rA[i]=first_r*N;
-        nfirst_rA[i]=num_r*N;
-        first_rB[i]=first_r;
-        nfirst_rB[i]=num_r;
+        /*Receive data from other processes*/
+        for (i = 1; i < procs; i++) {
+          for (row = norm + 1 + i; row < N; row += procs) {
+            MPI_Recv(&A[row], N, MPI_FLOAT, i, 1, MPI_COMM_WORLD, &status);
+            MPI_Recv(&B[row], 1, MPI_FLOAT, i, 1, MPI_COMM_WORLD, &status);
+          }
+        }
       }
-    }
+      /*Receive data from process rank 0*/
+      else 
+      {
+        for (row = norm + 1 + myid; row < N; row += procs) {
+          MPI_Recv(&A[row], N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);   
+          MPI_Recv(&B[row], 1, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, &status);
 
-    /* scatters a buffer in parts to all processes */
-
-    MPI_Scatterv(&A[0], nfirst_rA, first_rA, MPI_FLOAT, &A[first_row*N], N*num_rows, MPI_FLOAT,0, MPI_COMM_WORLD);
-    MPI_Scatterv(&B[0], nfirst_rB, first_rB, MPI_FLOAT, &B[first_row], num_rows, MPI_FLOAT,0, MPI_COMM_WORLD);
-
-    for (row = first_row; row <= last_row; row++) {
-      multiplier = A[N*row + norm] / A[norm + N*norm];
-
-      for (col = norm; col < N; col++) {
-        A[col+N*row] -= A[N*norm + col] * multiplier;
+          multiplier = A[row][norm] / A[norm][norm];
+          for (col = norm; col < N; col++) {
+            A[row][col] -= A[norm][col] * multiplier;
+          }
+          B[row] -= B[norm] * multiplier;
+          /*Send back the results*/
+          MPI_Isend(&A[row], N, MPI_FLOAT, 0, 1, MPI_COMM_WORLD, &request);
+          MPI_Wait(&request, &status);    
+          MPI_Isend(&B[row], 1, MPI_FLOAT, 0, 1, MPI_COMM_WORLD, &request);
+          MPI_Wait(&request, &status);
+        }
       }
-      B[row] -= B[norm] * multiplier;
-    }
-
-    /* send results to rank 0 */
-    if ( myrank != 0 ) 
-    { 
-      if ( num_rows > 0  && first_row < N) {
-        MPI_Isend( &A[first_row * N], N * num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD,&request);
-        MPI_Isend( &B[first_row],num_rows, MPI_FLOAT, 0,0, MPI_COMM_WORLD,&request);
-      }
-    }
-    /* Gathers into specified locations from all processes in a group */
-    MPI_Gatherv(&A[first_row* N], N*num_rows, MPI_FLOAT, &A[0],nfirst_rA,first_rA, MPI_FLOAT,0,MPI_COMM_WORLD);
-    MPI_Gatherv(&B[first_row], num_rows, MPI_FLOAT, &B[0],nfirst_rB,first_rB, MPI_FLOAT,0,MPI_COMM_WORLD);
+        /* ensure synchronization */
+      MPI_Barrier(MPI_COMM_WORLD);
   }
+  MPI_Barrier(MPI_COMM_WORLD);
 
   
   /* (Diagonal elements are not normalized to 1.  This is treated in back substitution.) */
